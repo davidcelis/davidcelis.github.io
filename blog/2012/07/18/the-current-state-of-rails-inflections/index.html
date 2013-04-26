@@ -1,0 +1,350 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>The Current State of Rails Inflections - davidcel.is</title>
+	<meta name="author" content="David Celis">
+
+	
+	<meta name="description" content="UPDATE: I&#8217;ve provided a better set of inflections in the form of a gem. If you agree with my sentiment here, check it out at the end of this &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="davidcel.is" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+</head>
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">davidcel.is</a></h1>
+<nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+  <li><a href="/about">Meet David</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</nav>
+<nav id="mobile-nav">
+	<div class="alignleft menu">
+		<a class="button">Menu</a>
+		<div class="container"><ul class="main">
+	<li><a href="/">Blog</a></li>
+  <li><a href="/about">Meet David</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</div>
+	</div>
+	<div class="alignright search">
+		<a class="button"></a>
+		<div class="container">
+			<form action="http://google.com/search" method="get">
+				<input type="text" name="q" results="0">
+				<input type="hidden" name="q" value="site:davidcelis.github.io">
+			</form>
+		</div>
+	</div>
+</nav>
+<nav id="sub-nav" class="alignright">
+	<div class="social">
+		
+		<a class="facebook" href="http://www.facebook.com/davidcelis" title="Facebook">Facebook</a>
+		
+		
+		
+		<a class="twitter" href="http://twitter.com/davidcelis" title="Twitter">Twitter</a>
+		
+		
+		<a class="github" href="https://github.com/davidcelis" title="GitHub">GitHub</a>
+		
+		
+		
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+	<form class="search" action="http://google.com/search" method="get">
+		<input class="alignright" type="text" name="q" results="0">
+		<input type="hidden" name="q" value="site:davidcelis.github.io">
+	</form>
+</nav>
+
+</header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h1 class="title">The Current State of Rails Inflections</h1>
+	<div class="entry-content"><p><em>UPDATE: I&#8217;ve provided a better set of inflections in the form of a gem. If you agree with my sentiment here, check it out at the end of this post.</em></p>
+
+<p>Ah, the Rails Inflector; we all know and love it. This little part of ActiveSupport has a lot of responsibility in our Rails applications, after all. It affects table names, class names, our resourceful routes, foreign keys&#8230; It&#8217;s a great part of ActiveSupport. Not only does much of Rails depend on the Inflector, but it provides useful mechanisms for string manipulation to users.</p>
+
+<p>But how does the Inflector actually handle singularization and pluralization? English is not a regular language. There are a lot of grammatical rules to consider when converting between the two, so what does the Inflector consider? There must be some magic involved, right? According to the documentation, Rails defines these inflections directly in ActiveSupport&#8230; <code>lib/active_support/inflections.rb</code> to be exact. Let&#8217;s take a looksy, shall we?</p>
+
+<!--more-->
+
+
+
+
+<div><script src='https://gist.github.com/3137677.js?file=inflections.rb'></script>
+<noscript><pre><code>require 'active_support/inflector/inflections'
+
+module ActiveSupport
+  Inflector.inflections do |inflect|
+    inflect.plural(/$/, 's')
+    inflect.plural(/s$/i, 's')
+    inflect.plural(/^(ax|test)is$/i, '\1es')
+    inflect.plural(/(octop|vir)us$/i, '\1i')
+    inflect.plural(/(octop|vir)i$/i, '\1i')
+    inflect.plural(/(alias|status)$/i, '\1es')
+    inflect.plural(/(bu)s$/i, '\1ses')
+    inflect.plural(/(buffal|tomat)o$/i, '\1oes')
+    inflect.plural(/([ti])um$/i, '\1a')
+    inflect.plural(/([ti])a$/i, '\1a')
+    inflect.plural(/sis$/i, 'ses')
+    inflect.plural(/(?:([^f])fe|([lr])f)$/i, '\1\2ves')
+    inflect.plural(/(hive)$/i, '\1s')
+    inflect.plural(/([^aeiouy]|qu)y$/i, '\1ies')
+    inflect.plural(/(x|ch|ss|sh)$/i, '\1es')
+    inflect.plural(/(matr|vert|ind)(?:ix|ex)$/i, '\1ices')
+    inflect.plural(/^(m|l)ouse$/i, '\1ice')
+    inflect.plural(/^(m|l)ice$/i, '\1ice')
+    inflect.plural(/^(ox)$/i, '\1en')
+    inflect.plural(/^(oxen)$/i, '\1')
+    inflect.plural(/(quiz)$/i, '\1zes')
+
+    inflect.singular(/s$/i, '')
+    inflect.singular(/(ss)$/i, '\1')
+    inflect.singular(/(n)ews$/i, '\1ews')
+    inflect.singular(/([ti])a$/i, '\1um')
+    inflect.singular(/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)(sis|ses)$/i, '\1sis')
+    inflect.singular(/(^analy)(sis|ses)$/i, '\1sis')
+    inflect.singular(/([^f])ves$/i, '\1fe')
+    inflect.singular(/(hive)s$/i, '\1')
+    inflect.singular(/(tive)s$/i, '\1')
+    inflect.singular(/([lr])ves$/i, '\1f')
+    inflect.singular(/([^aeiouy]|qu)ies$/i, '\1y')
+    inflect.singular(/(s)eries$/i, '\1eries')
+    inflect.singular(/(m)ovies$/i, '\1ovie')
+    inflect.singular(/(x|ch|ss|sh)es$/i, '\1')
+    inflect.singular(/^(m|l)ice$/i, '\1ouse')
+    inflect.singular(/(bus)(es)?$/i, '\1')
+    inflect.singular(/(o)es$/i, '\1')
+    inflect.singular(/(shoe)s$/i, '\1')
+    inflect.singular(/(cris|test)(is|es)$/i, '\1is')
+    inflect.singular(/^(a)x[ie]s$/i, '\1xis')
+    inflect.singular(/(octop|vir)(us|i)$/i, '\1us')
+    inflect.singular(/(alias|status)(es)?$/i, '\1')
+    inflect.singular(/^(ox)en/i, '\1')
+    inflect.singular(/(vert|ind)ices$/i, '\1ex')
+    inflect.singular(/(matr)ices$/i, '\1ix')
+    inflect.singular(/(quiz)zes$/i, '\1')
+    inflect.singular(/(database)s$/i, '\1')
+
+    inflect.irregular('person', 'people')
+    inflect.irregular('man', 'men')
+    inflect.irregular('child', 'children')
+    inflect.irregular('sex', 'sexes')
+    inflect.irregular('move', 'moves')
+    inflect.irregular('cow', 'kine')
+    inflect.irregular('zombie', 'zombies')
+
+    inflect.uncountable(%w(equipment information rice money species series fish sheep jeans police))
+  end
+end</code></pre></noscript></div>
+
+
+<p>This is a snapshot of Rails&#8217; inflections in the master branch (4.0.0.beta) at the time of writing this post and&#8230; Well&#8230; Yikes. This brings me to what I really want to discuss: the state of Rails&#8217; Singularization and Pluralization rules. I think it&#8217;s a mess.</p>
+
+<h2>Pluralization in English is not regular</h2>
+
+<p>There are only a few basic rules in English for pluralization. Because we&#8217;re speaking in terms of text, I&#8217;ll try to keep these rules based on characters rather than sounds. However, one important rule does depend on &#8221;<a href="http://en.wikipedia.org/wiki/Sibilant">sibilant</a>&#8221; sounds, which are defined as a sound made by directing air through the sharp edge of your teeth and your tongue (i.e. &#8216;sh&#8217;, &#8216;ss&#8217;, &#8216;dge&#8217;, etc.). While prevalent, this can be difficult to detect in text and there are definitely edge cases.</p>
+
+<h3>The rules</h3>
+
+<ul>
+<li><p>If the word ends with a &#8220;sibilant&#8221; sound, the plural form ends with &#8216;es&#8217; (dish => dishes, ) or &#8216;s&#8217; if the word already ends with an &#8216;e&#8217; (such as fridge => fridges or judge => judges)</p></li>
+<li><p>Most words that end with an &#8216;o&#8217; preceded by a consonant pluralize as &#8216;oes&#8217; (potato => potatoes, avocado => avocadoes).</p></li>
+<li><p>Most words that end with a &#8216;y&#8217; preceded by a consonant pluralize as &#8216;ies&#8217; (lady => ladies, berry => berries)</p></li>
+</ul>
+
+
+<p>Aside from these rules, however, all other regular plurals are achieved by adding an &#8216;s&#8217;.</p>
+
+<h3>Some exceptions</h3>
+
+<ul>
+<li>Words of foreign origin are exempt from the &#8216;oes&#8217; rule (piano => pianos, zero => zeros, kimono => kimonos).</li>
+<li>Proper nouns that end with a y are exempt from the &#8216;ies&#8217; rule (Germany => Germanys, Cody => Codys).</li>
+</ul>
+
+
+<p>These are just two sets of exceptions, however, and these are moreso rules that are exceptions to other rules. English pluralization is riddled with other exceptions that are inconsistent:</p>
+
+<ul>
+<li>Some words that end in an &#8216;f&#8217; have that &#8216;f&#8217; mutated to a &#8216;v&#8217; during pluralization (calf => calves, shelf => shelves, leaf => leaves) due in part to the evolution of old/middle English to standard English.</li>
+<li>Some words with double &#8216;o&#8217;s replace those &#8216;o&#8217;s with &#8216;e&#8217;s (goose => geese, foot => feet).</li>
+<li>Many words are both singular and plural (buffalo, money, sheep, series, fish, coffee) and are therefore uncountable.</li>
+<li>Some words can even be pluralized <em>multiple ways</em> depending on context (indices/indexes, staffs/staves)! That&#8217;s a case that the Rails Inflector can never hope to get right.</li>
+<li>And, of course, some words are just plain irregular (child => children, man => men, mouse => mice, datum => data, etc.).</li>
+</ul>
+
+
+<p>How can Rails hope to consider all of these exceptions when English is such an irregular and fluid language? How should Rails handle the edge cases and irregularities? The answer is simple: it shouldn&#8217;t.</p>
+
+<h2>The inflector should be based on rules, not exceptions</h2>
+
+<p>The current inflections that Rails defines are riddled with both rules and exceptions. The file has become such a mess, and so many people were submitting pull requests (<a href="https://github.com/rails/rails/pull/7086">#7086</a> <a href="https://github.com/rails/rails/pull/345">#345</a> <a href="https://github.com/rails/rails/pull/3930">#3930</a> <a href="https://github.com/rails/rails/pull/3910">#3910</a> <a href="https://github.com/rails/rails/pull/6820">#6820</a> <a href="https://github.com/rails/rails/pull/2457">#2457</a> and the list goes on and on and on&#8230;) to either fix inflections or add new ones, that inflections in Rails are now frozen. From the documentation for <code>ActiveSupport::Inflector</code>:</p>
+
+<blockquote><p>The Rails core team has stated patches for the inflections library will not be accepted in order to avoid breaking legacy applications which may be relying on errant inflections. If you discover an incorrect inflection and require it for your application, you&#8217;ll need to correct it yourself.</p></blockquote>
+
+
+<p>I believe that the Rails core team members have shot themselves in the feet with this one. Don&#8217;t get me wrong, many of these pull requests <em>should</em> be closed. A common response to these patches is &#8220;Rails cannot possibly include all inflections by default.&#8221; Awesome. I totally agree. But this is hypocritical, considering Rails has already defined many inflections that are exceptions or irregularities, such as ox => oxen, crisis => crises, and the aforementioned case of index => indices (even though this pluralization is purely contextual). Many of the &#8220;rules&#8221; defined in Rails&#8217; inflections are really exceptions. Some of these exceptions are narrow and affect only one or two words. Some of the exceptions admittedly make sense, but should instead be defined as irregularities rather than singular/plural inflections. I&#8217;ll gloss over why some of the current inflections <em>don&#8217;t</em> make sense:</p>
+
+<ul>
+<li><code>axis/testis &lt;=&gt; axes/testes</code>: special rules that should be defined as irregularities</li>
+<li><code>octopus/virus &lt;=&gt; octopi/viri</code>: special rules which are actually disputed, as octopuses and viruses are more used and accepted</li>
+<li><code>octopi/viri =&gt; octopi/viri</code>: these words are not singular, so pluralization should not even be attempted.</li>
+<li><code>alias/status &lt;=&gt; aliases/statuses</code>: special rules even though this follows a regular pluralization rule</li>
+<li><code>buffalo/tomato =&gt; buffaloes/tomatoes</code>: special rules even though these are also regular plurals</li>
+<li><code>*hive &lt;=&gt; *hives</code>: a special rule even though this is a regular plural</li>
+<li><code>matrix/vertex/index &lt;=&gt; matrices/vertices/indices</code>: while this makes sense, indices/indexes are both accepted depending on context. Matrices/Vertices are probably not used enough in Rails applications to warrant a provided rule.</li>
+<li><code>mouse/louse &lt;=&gt; mice/lice</code>: words that will never see the light of day in Rails applications.</li>
+<li><code>news &lt;=&gt; news</code>: A special rule that could have been an <code>uncountable</code>. The frequency of the word &#8220;news&#8221; in Rails applications is also debatable.</li>
+<li><code>ox &lt;=&gt; oxen</code>: A special rule that should be an irregularity, but will also likely never be used in Rails applications</li>
+<li><code>oxen =&gt; oxen</code>: A special rule even though oxen is not singular</li>
+<li><code>quiz &lt;=&gt; quizzes</code>: A special rule that should be defined as an irregularity, though I feel similarly towards this irregularity as I do matrices/vertices.</li>
+</ul>
+
+
+<p>Clearly, something is amiss here. Rails core team members say that Rails can not include all inflections and that exceptions should be defined by the user in the inflections initializer generated with every new Rails application. I agree, but that&#8217;s not the practice I&#8217;m seeing here. Rails&#8217; inflections are riddled with poorly defined singularization and pluralization rules that are not even rules in the first place.</p>
+
+<p>Some of the inflections I referred to above are defined as special cases even though they follow a regular pluralization rule. Many shouldn&#8217;t be defined in the first place, even as irregularities instead of singularization/pluralization rules. When was the last time you saw an application using buffalo, tomato, mouse, louse, ox, or octopus as a model? The &#8220;Zombie&#8221; rule was only added because a website devoted to Rails tutorials, <a href="http://railsforzombies.org/">Rails for Zombies</a>, noticed that <a href="https://github.com/rails/rails/pull/2457">generators were singularizing &#8220;zombies&#8221; as &#8220;zomby&#8221;</a> due to &#8220;zombies&#8221; being irregular. Perhaps a better idea would have been to take that as an opportunity to provide a quick lesson on inflections to new Rails users.</p>
+
+<p>Oh, and don&#8217;t even get me started on the ridiculously added, archaic plural form of &#8220;cow&#8221;: <code>inflect.irregular('cow', 'kine')</code></p>
+
+<p>Of course, there are some exceptions and irregularities that make sense to define. To name a few, &#8220;child&#8221; is a frequently-used term in programming and computer science, &#8220;person&#8221; is a somewhat frequently-used model name in Rails applications, and &#8220;half&#8221; or &#8220;life&#8221; are also used frequently in programming depending on the area. I won&#8217;t argue that they should be defined within the framework as irregularities.</p>
+
+<h2>Rails 4.0 is coming - it&#8217;s time to .unfreeze inflections</h2>
+
+<p>With Rails 4.0 on its way, isn&#8217;t now a good time to clean up the inflections? Isn&#8217;t a major release the perfect time to eschew the worry of breaking existing applications for the betterment of the framework? Rails is a huge piece of software; any upgrades should be done with caution. Users should be expected to read the CHANGELOG when upgrading even from minor versions, and they should read the upgrade guides that Rails provides with each minor version bump. Inflections do not need to be backwards compatible. We should fix the inflections that are clearly exceptions and not rules, note it in the CHANGELOG and upgrade guides, and move on with our lives. Developers who blindly upgrade their Rails versions are asking for hurt, and freezing an area of the framework that needs improvement is the wrong approach.</p>
+
+<h2>Until then, a better set of defaults:</h2>
+
+<p>Until Rails core decides its time to clean up inflections, I&#8217;ve provided a more sane set of singularization and pluralization rules in the form of a gem:</p>
+
+<p><a href="https://github.com/davidcelis/inflections">https://github.com/davidcelis/inflections</a></p>
+
+<p>Here&#8217;s the difference:</p>
+
+<p>4 pluralization   rules (down from 21)</p>
+
+<p>5 singularization rules (down from 27)</p>
+
+<p>3 irregularities        (down from 7)</p>
+
+<p>1 uncountable           (down from 10)</p>
+
+<p>Ahhh. Much better.</p>
+</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-07-18T16:30:00-07:00" pubdate data-updated="true">Jul 18<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/programming/'>Programming</a>, <a class='category' href='/blog/categories/rails/'>Rails</a>, <a class='category' href='/blog/categories/ruby/'>Ruby</a>
+
+
+</div>
+	
+		<span class="comments"><a href="#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script>
+</div>
+
+
+
+<section id="comment">
+    <h1 class="title">Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2013
+
+    David Celis
+
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'davidcelis';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://davidcelis.github.io/blog/2012/07/18/the-current-state-of-rails-inflections/';
+        var disqus_url = 'http://davidcelis.github.io/blog/2012/07/18/the-current-state-of-rails-inflections/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-28731352-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+
+</body>
+</html>

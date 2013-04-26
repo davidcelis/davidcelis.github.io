@@ -1,0 +1,943 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[davidcel.is]]></title>
+  <link href="http://davidcelis.github.io/atom.xml" rel="self"/>
+  <link href="http://davidcelis.github.io/"/>
+  <updated>2013-04-26T16:57:14-07:00</updated>
+  <id>http://davidcelis.github.io/</id>
+  <author>
+    <name><![CDATA[David Celis]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[From 1.5 GB to 50 MB: The Story of my Redis Database]]></title>
+    <link href="http://davidcelis.github.io/blog/2013/03/20/the-story-of-my-redis-database/"/>
+    <updated>2013-03-20T11:42:00-07:00</updated>
+    <id>http://davidcelis.github.io/blog/2013/03/20/the-story-of-my-redis-database</id>
+    <content type="html"><![CDATA[<p>It&#8217;s been a while since I updated anybody on the current state of goodbre.ws. To make a long story short, I am in the midst of rewriting the site entirely. There are (or were) mainly two large problems for me. One big, niggling problem is that managing the database of beers on my own is impossible. My solution to this is to delegate that out to <a href="http://www.brewerydb.com/">BreweryDB</a>. They have so much more information on their beers than I do that it actually warrants a large rewrite of goodbre.ws. People have consistently asked for a more browsing-oriented experience as opposed to the current search-oriented experience. I&#8217;m going to deliver on that. The other big problem was how much memory my Redis instance was taking. Well, I have a small story about that. Yesterday, I reduced that memory usage from 1.5 GB to just 50 MB.</p>
+
+<!--more-->
+
+
+<p>Last year, with the press on goodbre.ws came a small horde of new users. I found myself with a userbase of about 7000 people. Quite a change from humble beginnings of only a couple hundred friends, classmates and colleagues. However, with all of these new people came a few problems. First, my background jobs to refresh recommendations slowed waaay down. I eventually discovered an I/O bottleneck in the background worker that was hitting both Postgres and Redis more than it reasonably should have been. However, as more and more people were getting their recommendations, I saw my server&#8217;s RAM usage
+quickly get worse and worse. It wasn&#8217;t long before the amount of RAM that Redis was trying to use had exceeded the amount of RAM on my server (1 GB). I was forced to take goobre.ws down, and here we are.</p>
+
+<p>I started doing a lot of thinking about my Redis usage. What could possibly be causing it to use that much memory? I considered the length of my keys. Typical redis keys looked something like <code>recommendable:users:1234:liked_beers</code>. Okay. Multiply that by five for each user (for dislikes, bookmarks, hidden beers, etc.) and there&#8217;s a lot of repetition in the key names. They&#8217;re also quite long. Maybe Redis was eating memory by storing tens of thousands of really long key names in RAM? I decided to try shortening them to a more reasonable format: <code>u:1234:lb</code> for example.</p>
+
+<p>With lots of hope, I renamed my keys and restarted Redis. Hopes dashed: that reduced memory usage by a paltry 0.01 GB. That&#8217;s 10 MB which, for RAM, may be worth exploring again in the future. However, it obviously wasn&#8217;t my main problem.</p>
+
+<p>Optimization is a rabbithole I&#8217;ve not had to go down very often. I am hardly an expert. I let my own self-consiousness and self-doubt  get in the way of doing real testing. I immediately jumped to conclusions that, perhaps, Redis was not the tool I wanted to be using. Maybe I should revert to storing ratings in PostgreSQL and accept what would certainly be a large performance hit during recommendation generation.</p>
+
+<p>I toyed with the idea of finding some other data store. I couldn&#8217;t find a key-value store that, like Redis, had sets and sorted sets but, unlike redis, was not in-memory. I also didn&#8217;t want to give up the in-memory bit. It&#8217;s just so fast. The SET and ZSET data structures were also far too perfect for my usage. But what could I do? Redis obviously was becoming too expensive for me. I would have to find something else.</p>
+
+<p>I thought about moving my ratings into a Neo4j graph database. It could make for an interesting way of generating recommendations: it could be a simple graph traversal out from a user to connected (similar) users to find beers that those users like frequently. That would probably even be faster. However, the recommendations themselves would not be as good.</p>
+
+<p>I also thought about simply moving the ratings back into Postgres and initializing some sort of Ruby Set mapping when the Rails app booted up, but that would probably take just as much memory if not more. I&#8217;d only be moving RAM usage from Redis to Rails.</p>
+
+<p>Finally, yesterday, I did what I should have done in the first place. I downloaded a <a href="https://github.com/sripathikrishnan/redis-rdb-tools">memory profiling tool</a> built for Redis that would give me key-by-key memory usage stats. What I discovered was surprising, because it outlined a problem I remember thinking about a long time ago. So long ago, in fact, that I thought I had already addressed it.</p>
+
+<p>My issue was how much data I was retaining in each sorted set (ZSET). Each user gets two ZSETs. One is used to store user similarities, and pairs other users&#8217; IDs with a calculated similarity value as the rank. The other ZSET stores recommendations, pairing beer IDs with the probability of them liking that beer. In each ZSET, I was keeping those values for every other user and for every other beer. Multiply that by what became a database of 7000 users and 60000 beers and, well, you can guess. Let&#8217;s just say that a lot of these sets were over 1 MB each.</p>
+
+<p>I thought I was already truncating the ZSETs filled with similarity values by using a k-Nearest-Neighbor setting that I had introduced to Recommendable. That setting uses some specified number of similar users when generating recommendations as opposed to every user. Enabling that setting reduced the size of each similarity set from around 7000 values to 200 (100 similar users and 100 dissimilar users).</p>
+
+<p>Additionally, I implemented a setting to specify how many recommendations should be kept at any one time for each user. I only ever show 10 recommendations, so maintaining those probabilities for every single beer was ridiculous. I reduced that to 100 as well so people can immediately get more recommendations if they rate their current ones.</p>
+
+<p>After truncating all of the sets to their specified lengths, I watched in awe as the memory Redis had been consuming dropped from 1.5 GB to 50 MB. I don&#8217;t think I&#8217;ll be having memory usage issues with Redis for a long time.</p>
+
+<p>If you&#8217;re a <a href="https://github.com/davidcelis/recommendable">Recommendable</a> user, I highly suggest you make use of the <code>nearest_neighbors</code>, <code>furthest_neighbors</code>, and <code>recommendations_to_store</code> settings.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[The State of Recommendations in goodbre.ws]]></title>
+    <link href="http://davidcelis.github.io/blog/2012/10/03/the-state-of-recommendations-in-goodbrews/"/>
+    <updated>2012-10-03T11:27:00-07:00</updated>
+    <id>http://davidcelis.github.io/blog/2012/10/03/the-state-of-recommendations-in-goodbrews</id>
+    <content type="html"><![CDATA[<p><em>NOTE: This post has been updated. Please click through to read that.</em></p>
+
+<p>Hello, friends and new faces. I want to take a moment to address a question that many of you have had on your mind since you came to <a href="https://goodbre.ws/">goodbre.ws</a>.</p>
+
+<blockquote><p>Where are my recommendations?</p><footer><strong>Pretty Much Everybody</strong> <cite></cite></footer></blockquote>
+
+
+
+
+<!--more-->
+
+
+<p>There is (obviously) a problem with how long it is taking for your recommendations to be delivered, and I want to respond to that. I never expected goodbre.ws to be gaining popularity at its current speed. It&#8217;s all beyond what I had hoped for and is very exciting. You likely found goodbre.ws on <a href="http://lifehacker.com/5947790/goodbrews-tracks-the-beer-you-like-suggests-brews-youd-love">Lifehacker</a> or <a href="http://www.huffingtonpost.com/2012/10/01/goodbrews-beer-recommendations-exploration-website_n_1930567.html?utm_hp_ref=technology">The Huffington Post</a>. I was surprised to discover goodbre.ws was suddenly getting press, and the spikes of traffic have made for a stressful (albeit exciting) few days.</p>
+
+<p>Mainly, however, the heavy increase of traffic has shown me that my current way of serving recommendations isn&#8217;t particularly scalable. As people join the site, recommendations become exponentially slower. But don&#8217;t fret! I&#8217;m currently working on what will end up being a complete overhaul of <a href="https://github.com/davidcelis/recommendable">Recommendable</a>, the library that I wrote to power goodbre.ws. I&#8217;m hoping to have a solution out the door in the next week or two, and I think that it will alleviate this problem.</p>
+
+<p>Until then, some newer users may not see any recommendations at all. I apologize for this. But I also appreciate patience during this period as I figure out what to do with goodbre.ws. Please keep in mind that I&#8217;m just one guy doing this on my free time and trying to provide what I think is a really simple and really cool service. Meanwhile, I think that goodbre.ws is still a great way to keep track of the beers you like and don&#8217;t like. I&#8217;ve been getting great feedback and suggestions from so many people, so I hope that you&#8217;ll continue to use the site during the next week or two with the understanding that recommendations <em>are</em> coming soon.</p>
+
+<p>Thank you for being patient.</p>
+
+<p><em>UPDATE (14:52 PST, 16 October 2012): Several days ago, I updated <a href="https://github.com/davidcelis/recommendable">recommendable</a> to be much speedier with Recommendations. If you&#8217;re still not seeing recommendations, please rate one more beer. This will place you in a (now very small) queue, out of which 25 jobs can be processed in parallel. Once your turn comes, it takes about 10 minutes on average to get recommendations. Once you get them, you&#8217;ll always have them. Any further ratings just improve accuracy. So just be patient for that initial process.</em></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[The Fox in the Snow (Belle and Sebastian)]]></title>
+    <link href="http://davidcelis.github.io/blog/2012/09/09/fox-in-the-snow/"/>
+    <updated>2012-09-09T17:50:00-07:00</updated>
+    <id>http://davidcelis.github.io/blog/2012/09/09/fox-in-the-snow</id>
+    <content type="html"><![CDATA[<p>Well, friends, this is where it all began. This was my first foray into singing while playing the piano, and it&#8217;s still one of my favorite songs to play. Everything I&#8217;ve done on the piano for the past few years has stemmed from this one song and, in a way, has led to this song.</p>
+
+<p>This song is &#8220;The Fox in the Snow&#8221;, off of Belle and Sebastian&#8217;s album <em>If You&#8217;re Feeling Sinister</em>. It was their second album, released back in 1996. So it&#8217;s an &#8220;old&#8221; one, but a great one. Hope you guys enjoy it.</p>
+
+<!--more-->
+
+
+
+
+<div class="video-container">
+  <iframe width="" height="" src="http://www.youtube.com/embed/nmuP188wpgk " frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+</div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Stop Validating Email Addresses With Your Complex Regex]]></title>
+    <link href="http://davidcelis.github.io/blog/2012/09/06/stop-validating-email-addresses-with-regex/"/>
+    <updated>2012-09-06T10:33:00-07:00</updated>
+    <id>http://davidcelis.github.io/blog/2012/09/06/stop-validating-email-addresses-with-regex</id>
+    <content type="html"><![CDATA[<p>Just stop, guys. It&#8217;s a waste of your time and your effort. Put down your Google search for an <a href="http://www.google.com/search?q=email+regex">email regular expression</a>, take a step back, and breathe. There&#8217;s a famous quote that goes:</p>
+
+<blockquote><p>Some people, when confronted with a problem, think, &#8220;I know, I&#8217;ll use regular expressions.&#8221;<br/>Now they have two problems.</p><footer><strong>Jamie Zawinski,</strong> <cite><a href='http://regex.info/blog/2006-09-15/247'>regex.info/blog/2006-09-15/247/&hellip;</a></cite></footer></blockquote>
+
+
+<p>Here&#8217;s a fairly common code sample from Rails Applications with some sort of authentication system:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="c1"># This regex is from https://github.com/plataformatec/devise, the most</span>
+</span><span class='line'>  <span class="c1"># popular Rails authentication library</span>
+</span><span class='line'>  <span class="n">validates_format_of</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="sr">/\A[^@]+@([^@\.]+\.)+[^@\.]+\z/</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This seems fairly simple (unless you don&#8217;t know Regex), but it can get way worse&#8230;</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">validates_format_of</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="sr">/^(|(([A-Za-z0-9]+_+)|([A-Za-z0-9]+\-+)|([A-Za-z0-9]+\.+)|([A-Za-z0-9]+\++))*[A-Za-z0-9]+@((\w+\-+)|(\w+\.))*\w{1,63}\.[a-zA-Z]{2,6})$/i</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Or even worse still&#8230;</p>
+
+<!--more-->
+
+
+
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">validates</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="no">EmailAddressValidator</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">EmailValidator</span> <span class="o">&lt;</span> <span class="no">ActiveModel</span><span class="o">::</span><span class="no">Validator</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_QTEXT</span>           <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s1">&#39;[^\\x0d\\x22\\x5c\\x80-\\xff]&#39;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_DTEXT</span>           <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s1">&#39;[^\\x0d\\x5b-\\x5d\\x80-\\xff]&#39;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_ATOM</span>            <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s1">&#39;[^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+&#39;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_QUOTED_PAIR</span>     <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s1">&#39;\\x5c[\\x00-\\x7f]&#39;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_DOMAIN_LITERAL</span>  <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">x5b(?:</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_DTEXT</span><span class="si">}</span><span class="s2">|</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_QUOTED_PAIR</span><span class="si">}</span><span class="s2">)*</span><span class="se">\\</span><span class="s2">x5d&quot;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_QUOTED_STRING</span>   <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">x22(?:</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_QTEXT</span><span class="si">}</span><span class="s2">|</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_QUOTED_PAIR</span><span class="si">}</span><span class="s2">)*</span><span class="se">\\</span><span class="s2">x22&quot;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_DOMAIN_REF</span>      <span class="o">=</span> <span class="no">EMAIL_ADDRESS_ATOM</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_SUB_DOMAIN</span>      <span class="o">=</span> <span class="s2">&quot;(?:</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_DOMAIN_REF</span><span class="si">}</span><span class="s2">|</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_DOMAIN_LITERAL</span><span class="si">}</span><span class="s2">)&quot;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_WORD</span>            <span class="o">=</span> <span class="s2">&quot;(?:</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_ATOM</span><span class="si">}</span><span class="s2">|</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_QUOTED_STRING</span><span class="si">}</span><span class="s2">)&quot;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_DOMAIN</span>          <span class="o">=</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_SUB_DOMAIN</span><span class="si">}</span><span class="s2">(?:</span><span class="se">\\</span><span class="s2">x2e</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_SUB_DOMAIN</span><span class="si">}</span><span class="s2">)*&quot;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_LOCAL_PART</span>      <span class="o">=</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_WORD</span><span class="si">}</span><span class="s2">(?:</span><span class="se">\\</span><span class="s2">x2e</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_WORD</span><span class="si">}</span><span class="s2">)*&quot;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_SPEC</span>            <span class="o">=</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_LOCAL_PART</span><span class="si">}</span><span class="se">\\</span><span class="s2">x40</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_DOMAIN</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_PATTERN</span>         <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_SPEC</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_EXACT_PATTERN</span>   <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">A</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_SPEC</span><span class="si">}</span><span class="se">\\</span><span class="s2">z&quot;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">unless</span> <span class="n">record</span><span class="o">.</span><span class="n">email</span> <span class="o">=~</span> <span class="no">EMAIL_ADDRESS_EXACT_PATTERN</span>
+</span><span class='line'>      <span class="n">record</span><span class="o">.</span><span class="n">errors</span><span class="o">[</span><span class="ss">:email</span><span class="o">]</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;is invalid&#39;</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Yeesh. Is something that complex really necessary? If you actually check the Google query I linked above, people have been writing (or trying to write) <a href="http://tools.ietf.org/html/rfc2822">RFC-compliant</a> regular expressions to parse email addresses for years. They can get ridiculously convoluted as in the case above and, according to the specification, are often too strict anyway.</p>
+
+<p>Sections <a href="http://tools.ietf.org/html/rfc2822#section-3.2.4">3.2.4</a> and <a href="http://tools.ietf.org/html/rfc2822#section-3.4.1">3.4.1</a> of the RFC go into the requirements on how an email address needs to be formatted and, well, there&#8217;s not much you can&#8217;t do in your email address when quotes or backslashes are involved. The local string (the part of the email address that comes before the @) can contain the following characters:</p>
+
+<p><code>! $ &amp; * - = ^ ` | ~ # % ' + / ? _ { }</code></p>
+
+<p>But guess what? You can use pretty much any character you want if you escape it by surrounding it in quotes. For example, <code>"Look at all these spaces!"@example.com</code> is a valid email address. Nice.</p>
+
+<p>For this reason, for a time I began running any email address against the following regular expression instead:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">validates_format_of</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="sr">/@/</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Simple, right? Email addresses have to have an @ symbol. This is often the most I do and, when paired with a confirmation field for the email address on your registration form, can alleviate most problems with user error. But what if I told you there were a way to determine whether or not an email is valid without resorting to regular expressions at all? It&#8217;s surprisingly easy, and you&#8217;re probably already doing it anyway.</p>
+
+<h2>Just send them an email already</h2>
+
+<p>No, I&#8217;m not joking. Just send your users an email. The activation email is a practice that&#8217;s been in use for years, but it&#8217;s often paired with complex validations that the email is formatted correctly. If you&#8217;re going to send an activation email to users, why bother using a gigantic regular expression?</p>
+
+<p>Think about it this way: I register for your website under the email address <code>qwiufaisjdbvaadsjghb@gmail.com</code>. C&#8217;mon. That shit&#8217;s probably going to bounce off of the illustrious mail daemon, but the formatting is fine; it&#8217;s a valid email address. To fix this problem, you implement an activation system where, after registering, I am sent an email with a link I must click. This is to verify that I actually own that email address before my account is activated. At this point, why keep parsing email addresses for their format? The result of sending an email to a badly formatted email address would be the same: it&#8217;ll get bounced. If your user enters a bad email address, they won&#8217;t get the activation email and they&#8217;ll try to register again if they really care about using your site. It&#8217;s that simple.</p>
+
+<p>So eschew your fancy regular expressions already. If you really want to do  checking of email addresses right on the signup page, include a confirmation field so they have to type it twice. Enterprising individuals will just copy and paste, but what it comes down to is this: if your user enters a bad email address, you shouldn&#8217;t make it more of a problem for yourself than you have to. A complex regex validation on the email address doesn&#8217;t introduce an additional solution, it introduces an additional problem. If you really, really want to make sure people are typing in an actual email address, just use the <code>/@/</code> regular expression and call it done. Feeling ambitious? Then check for the dot too: <code>/.+@.+\..+/i</code>. Anything more is overkill.</p>
+
+<p><em>UPDATE: As several users in the comments have also pointed out, many email address regexes on the web will show tagged emails (i.e. <code>email+tag@example.com</code>) as invalid. Lots of people use tags in their email addresses while registering as a pair with their email service&#8217;s filtering systems. Keep that in mind if you don&#8217;t wish to heed the above advice.</em></p>
+
+<p><em>Additionally, you should take commenter Travis Dahlke&#8217;s <a href="http://davidcel.is/blog/2012/09/06/stop-validating-email-addresses-with-regex/#comment-642429611">suggestion</a> and look at <a href="https://github.com/Kicksend/mailcheck">Kicksend&#8217;s mail checker</a>.</em></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Edge Rails 4.0: A Multilingual Inflector]]></title>
+    <link href="http://davidcelis.github.io/blog/2012/07/31/edge-rails-a-multilingual-inflector/"/>
+    <updated>2012-07-31T09:50:00-07:00</updated>
+    <id>http://davidcelis.github.io/blog/2012/07/31/edge-rails-a-multilingual-inflector</id>
+    <content type="html"><![CDATA[<p>Here&#8217;s a sneak peak at an upcoming enhancement for <code>ActiveSupport::Inflector</code> in Rails 4.0. The Inflector is the part of Rails responsible for a good amount of the cool stuff you can do with Strings: pluralization, singularization, titleization, humanization, tableization&#8230; The list goes on. Rails uses these methods extensively to map between, say, Model names, Controller names, and the Model&#8217;s table name.</p>
+
+<p>Currently, the Inflector can handle only one set of rules at a time. Rails provides a lengthy list of singularization and pluralization rules for English, but what if somebody wants to specify how certain words in a foreign language (say Spanish) should be pluralized? In Rails 3, they have two options: they can define the words as irregularities in <code>config/initializers/inflections.rb</code> or put them into locale files. The former is bad because it involves mixing two languages into one set of rules, and the latter can lead to large, cluttered locale files when internationalizing a website. In Rails 4, however, I&#8217;m happy to offer a better solution for Rails developers in the process of internationalization: the Inflector is now multilingual. It can manage a complete set of inflection rules for each locale!</p>
+
+<!--more-->
+
+
+<p>Rails will still only provide a list of inflections in English. However, it&#8217;s now much easier to specify your own set of rules (or have them provided to you via a gem) for additional locales. You can, as previously, specify these rules in <code>config/initializers/inflections.rb</code>:</p>
+
+<figure class='code'><figcaption><span>config/initializers/inflections.rb </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># Inflector#inflections now takes a locale as a parameter (defaults to :en)</span>
+</span><span class='line'><span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Inflector</span><span class="o">.</span><span class="n">inflections</span><span class="p">(</span><span class="ss">:es</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">inflect</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/$/</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/([^aeéiou])$/i</span><span class="p">,</span> <span class="s1">&#39;\1es&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/([aeiou]s)$/i</span><span class="p">,</span> <span class="s1">&#39;\1&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/z$/i</span><span class="p">,</span> <span class="s1">&#39;ces&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/á([sn])$/i</span><span class="p">,</span> <span class="s1">&#39;a\1es&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/é([sn])$/i</span><span class="p">,</span> <span class="s1">&#39;e\1es&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/í([sn])$/i</span><span class="p">,</span> <span class="s1">&#39;i\1es&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/ó([sn])$/i</span><span class="p">,</span> <span class="s1">&#39;o\1es&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/ú([sn])$/i</span><span class="p">,</span> <span class="s1">&#39;u\1es&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">singular</span><span class="p">(</span><span class="sr">/s$/</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">singular</span><span class="p">(</span><span class="sr">/es$/</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">irregular</span><span class="p">(</span><span class="s1">&#39;el&#39;</span><span class="p">,</span> <span class="s1">&#39;los&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After specifying our ruleset for Spanish, we can fire up a Rails console and see it in action:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">rails</span> <span class="n">c</span>
+</span><span class='line'><span class="no">Loading</span> <span class="n">development</span> <span class="n">environment</span> <span class="p">(</span><span class="no">Rails</span> <span class="mi">4</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="n">beta</span><span class="p">)</span>
+</span><span class='line'><span class="o">[</span><span class="mi">1</span><span class="o">]</span> <span class="n">pry</span><span class="p">(</span><span class="n">main</span><span class="p">)</span><span class="o">&gt;</span> <span class="s2">&quot;avión&quot;</span><span class="o">.</span><span class="n">pluralize</span><span class="p">(</span><span class="ss">:es</span><span class="p">)</span>
+</span><span class='line'><span class="o">=&gt;</span> <span class="s2">&quot;aviones&quot;</span>
+</span><span class='line'><span class="o">[</span><span class="mi">2</span><span class="o">]</span> <span class="n">pry</span><span class="p">(</span><span class="n">main</span><span class="p">)</span><span class="o">&gt;</span> <span class="s2">&quot;avión&quot;</span><span class="o">.</span><span class="n">pluralize</span>
+</span><span class='line'><span class="o">=&gt;</span> <span class="s2">&quot;avións&quot;</span>
+</span><span class='line'><span class="o">[</span><span class="mi">3</span><span class="o">]</span> <span class="n">pry</span><span class="p">(</span><span class="n">main</span><span class="p">)</span><span class="o">&gt;</span> <span class="s2">&quot;luz&quot;</span><span class="o">.</span><span class="n">pluralize</span><span class="p">(</span><span class="ss">:es</span><span class="p">)</span>
+</span><span class='line'><span class="o">=&gt;</span> <span class="s2">&quot;luces&quot;</span>
+</span><span class='line'><span class="o">[</span><span class="mi">4</span><span class="o">]</span> <span class="n">pry</span><span class="p">(</span><span class="n">main</span><span class="p">)</span><span class="o">&gt;</span> <span class="s2">&quot;luz&quot;</span><span class="o">.</span><span class="n">pluralize</span>
+</span><span class='line'><span class="o">=&gt;</span> <span class="s2">&quot;luzs&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The Inflector will still default to English and use <code>:en</code> as the locale unless specified, as opposed to using the application&#8217;s <code>I18n.default_locale</code>. This is to avoid breaking applications that have been wired internally to use English pluralization rules for mapping between Model, Controller, and table names.</p>
+
+<p>Go ahead and browse the <a href="https://github.com/rails/rails/commit/7db0b073fec6bc3e6f213b58c76e7f43fcc2ab97">commit on GitHub</a>.</p>
+
+<h3>Where can I get rules for other locales?</h3>
+
+<p>I&#8217;m proud to offer a solution for this too! I&#8217;ve created a gem called <a href="https://github.com/davidcelis/inflections">Inflections</a> that I&#8217;m hoping can serve as a central repository for inflection rules of all locales. Unfortunately, I&#8217;m not a master of linguistics. Aside from English, I am only comfortable with Spanish, and so that&#8217;s the only additional set of inflection rules I have provided thus far (aside from a shorter list of English inflections that I believe to be stripped to the essentials). If you or anybody you know are a Rails developer and fluent in another language, please consider <a href="https://github.com/davidcelis/inflections/fork_select">forking Inflections</a>, making a list of inflections (<code>lib/inflections/&lt;locale&gt;.rb</code>) with tests (<code>test/&lt;locale&gt;_test.rb</code>) and <a href="https://github.com/davidcelis/inflections/pull/new/master">opening a pull request</a>.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[The Current State of Rails Inflections]]></title>
+    <link href="http://davidcelis.github.io/blog/2012/07/18/the-current-state-of-rails-inflections/"/>
+    <updated>2012-07-18T16:30:00-07:00</updated>
+    <id>http://davidcelis.github.io/blog/2012/07/18/the-current-state-of-rails-inflections</id>
+    <content type="html"><![CDATA[<p><em>UPDATE: I&#8217;ve provided a better set of inflections in the form of a gem. If you agree with my sentiment here, check it out at the end of this post.</em></p>
+
+<p>Ah, the Rails Inflector; we all know and love it. This little part of ActiveSupport has a lot of responsibility in our Rails applications, after all. It affects table names, class names, our resourceful routes, foreign keys&#8230; It&#8217;s a great part of ActiveSupport. Not only does much of Rails depend on the Inflector, but it provides useful mechanisms for string manipulation to users.</p>
+
+<p>But how does the Inflector actually handle singularization and pluralization? English is not a regular language. There are a lot of grammatical rules to consider when converting between the two, so what does the Inflector consider? There must be some magic involved, right? According to the documentation, Rails defines these inflections directly in ActiveSupport&#8230; <code>lib/active_support/inflections.rb</code> to be exact. Let&#8217;s take a looksy, shall we?</p>
+
+<!--more-->
+
+
+
+
+<div><script src='https://gist.github.com/3137677.js?file=inflections.rb'></script>
+<noscript><pre><code>require 'active_support/inflector/inflections'
+
+module ActiveSupport
+  Inflector.inflections do |inflect|
+    inflect.plural(/$/, 's')
+    inflect.plural(/s$/i, 's')
+    inflect.plural(/^(ax|test)is$/i, '\1es')
+    inflect.plural(/(octop|vir)us$/i, '\1i')
+    inflect.plural(/(octop|vir)i$/i, '\1i')
+    inflect.plural(/(alias|status)$/i, '\1es')
+    inflect.plural(/(bu)s$/i, '\1ses')
+    inflect.plural(/(buffal|tomat)o$/i, '\1oes')
+    inflect.plural(/([ti])um$/i, '\1a')
+    inflect.plural(/([ti])a$/i, '\1a')
+    inflect.plural(/sis$/i, 'ses')
+    inflect.plural(/(?:([^f])fe|([lr])f)$/i, '\1\2ves')
+    inflect.plural(/(hive)$/i, '\1s')
+    inflect.plural(/([^aeiouy]|qu)y$/i, '\1ies')
+    inflect.plural(/(x|ch|ss|sh)$/i, '\1es')
+    inflect.plural(/(matr|vert|ind)(?:ix|ex)$/i, '\1ices')
+    inflect.plural(/^(m|l)ouse$/i, '\1ice')
+    inflect.plural(/^(m|l)ice$/i, '\1ice')
+    inflect.plural(/^(ox)$/i, '\1en')
+    inflect.plural(/^(oxen)$/i, '\1')
+    inflect.plural(/(quiz)$/i, '\1zes')
+
+    inflect.singular(/s$/i, '')
+    inflect.singular(/(ss)$/i, '\1')
+    inflect.singular(/(n)ews$/i, '\1ews')
+    inflect.singular(/([ti])a$/i, '\1um')
+    inflect.singular(/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)(sis|ses)$/i, '\1sis')
+    inflect.singular(/(^analy)(sis|ses)$/i, '\1sis')
+    inflect.singular(/([^f])ves$/i, '\1fe')
+    inflect.singular(/(hive)s$/i, '\1')
+    inflect.singular(/(tive)s$/i, '\1')
+    inflect.singular(/([lr])ves$/i, '\1f')
+    inflect.singular(/([^aeiouy]|qu)ies$/i, '\1y')
+    inflect.singular(/(s)eries$/i, '\1eries')
+    inflect.singular(/(m)ovies$/i, '\1ovie')
+    inflect.singular(/(x|ch|ss|sh)es$/i, '\1')
+    inflect.singular(/^(m|l)ice$/i, '\1ouse')
+    inflect.singular(/(bus)(es)?$/i, '\1')
+    inflect.singular(/(o)es$/i, '\1')
+    inflect.singular(/(shoe)s$/i, '\1')
+    inflect.singular(/(cris|test)(is|es)$/i, '\1is')
+    inflect.singular(/^(a)x[ie]s$/i, '\1xis')
+    inflect.singular(/(octop|vir)(us|i)$/i, '\1us')
+    inflect.singular(/(alias|status)(es)?$/i, '\1')
+    inflect.singular(/^(ox)en/i, '\1')
+    inflect.singular(/(vert|ind)ices$/i, '\1ex')
+    inflect.singular(/(matr)ices$/i, '\1ix')
+    inflect.singular(/(quiz)zes$/i, '\1')
+    inflect.singular(/(database)s$/i, '\1')
+
+    inflect.irregular('person', 'people')
+    inflect.irregular('man', 'men')
+    inflect.irregular('child', 'children')
+    inflect.irregular('sex', 'sexes')
+    inflect.irregular('move', 'moves')
+    inflect.irregular('cow', 'kine')
+    inflect.irregular('zombie', 'zombies')
+
+    inflect.uncountable(%w(equipment information rice money species series fish sheep jeans police))
+  end
+end</code></pre></noscript></div>
+
+
+<p>This is a snapshot of Rails&#8217; inflections in the master branch (4.0.0.beta) at the time of writing this post and&#8230; Well&#8230; Yikes. This brings me to what I really want to discuss: the state of Rails&#8217; Singularization and Pluralization rules. I think it&#8217;s a mess.</p>
+
+<h2>Pluralization in English is not regular</h2>
+
+<p>There are only a few basic rules in English for pluralization. Because we&#8217;re speaking in terms of text, I&#8217;ll try to keep these rules based on characters rather than sounds. However, one important rule does depend on &#8221;<a href="http://en.wikipedia.org/wiki/Sibilant">sibilant</a>&#8221; sounds, which are defined as a sound made by directing air through the sharp edge of your teeth and your tongue (i.e. &#8216;sh&#8217;, &#8216;ss&#8217;, &#8216;dge&#8217;, etc.). While prevalent, this can be difficult to detect in text and there are definitely edge cases.</p>
+
+<h3>The rules</h3>
+
+<ul>
+<li><p>If the word ends with a &#8220;sibilant&#8221; sound, the plural form ends with &#8216;es&#8217; (dish => dishes, ) or &#8216;s&#8217; if the word already ends with an &#8216;e&#8217; (such as fridge => fridges or judge => judges)</p></li>
+<li><p>Most words that end with an &#8216;o&#8217; preceded by a consonant pluralize as &#8216;oes&#8217; (potato => potatoes, avocado => avocadoes).</p></li>
+<li><p>Most words that end with a &#8216;y&#8217; preceded by a consonant pluralize as &#8216;ies&#8217; (lady => ladies, berry => berries)</p></li>
+</ul>
+
+
+<p>Aside from these rules, however, all other regular plurals are achieved by adding an &#8216;s&#8217;.</p>
+
+<h3>Some exceptions</h3>
+
+<ul>
+<li>Words of foreign origin are exempt from the &#8216;oes&#8217; rule (piano => pianos, zero => zeros, kimono => kimonos).</li>
+<li>Proper nouns that end with a y are exempt from the &#8216;ies&#8217; rule (Germany => Germanys, Cody => Codys).</li>
+</ul>
+
+
+<p>These are just two sets of exceptions, however, and these are moreso rules that are exceptions to other rules. English pluralization is riddled with other exceptions that are inconsistent:</p>
+
+<ul>
+<li>Some words that end in an &#8216;f&#8217; have that &#8216;f&#8217; mutated to a &#8216;v&#8217; during pluralization (calf => calves, shelf => shelves, leaf => leaves) due in part to the evolution of old/middle English to standard English.</li>
+<li>Some words with double &#8216;o&#8217;s replace those &#8216;o&#8217;s with &#8216;e&#8217;s (goose => geese, foot => feet).</li>
+<li>Many words are both singular and plural (buffalo, money, sheep, series, fish, coffee) and are therefore uncountable.</li>
+<li>Some words can even be pluralized <em>multiple ways</em> depending on context (indices/indexes, staffs/staves)! That&#8217;s a case that the Rails Inflector can never hope to get right.</li>
+<li>And, of course, some words are just plain irregular (child => children, man => men, mouse => mice, datum => data, etc.).</li>
+</ul>
+
+
+<p>How can Rails hope to consider all of these exceptions when English is such an irregular and fluid language? How should Rails handle the edge cases and irregularities? The answer is simple: it shouldn&#8217;t.</p>
+
+<h2>The inflector should be based on rules, not exceptions</h2>
+
+<p>The current inflections that Rails defines are riddled with both rules and exceptions. The file has become such a mess, and so many people were submitting pull requests (<a href="https://github.com/rails/rails/pull/7086">#7086</a> <a href="https://github.com/rails/rails/pull/345">#345</a> <a href="https://github.com/rails/rails/pull/3930">#3930</a> <a href="https://github.com/rails/rails/pull/3910">#3910</a> <a href="https://github.com/rails/rails/pull/6820">#6820</a> <a href="https://github.com/rails/rails/pull/2457">#2457</a> and the list goes on and on and on&#8230;) to either fix inflections or add new ones, that inflections in Rails are now frozen. From the documentation for <code>ActiveSupport::Inflector</code>:</p>
+
+<blockquote><p>The Rails core team has stated patches for the inflections library will not be accepted in order to avoid breaking legacy applications which may be relying on errant inflections. If you discover an incorrect inflection and require it for your application, you&#8217;ll need to correct it yourself.</p></blockquote>
+
+
+<p>I believe that the Rails core team members have shot themselves in the feet with this one. Don&#8217;t get me wrong, many of these pull requests <em>should</em> be closed. A common response to these patches is &#8220;Rails cannot possibly include all inflections by default.&#8221; Awesome. I totally agree. But this is hypocritical, considering Rails has already defined many inflections that are exceptions or irregularities, such as ox => oxen, crisis => crises, and the aforementioned case of index => indices (even though this pluralization is purely contextual). Many of the &#8220;rules&#8221; defined in Rails&#8217; inflections are really exceptions. Some of these exceptions are narrow and affect only one or two words. Some of the exceptions admittedly make sense, but should instead be defined as irregularities rather than singular/plural inflections. I&#8217;ll gloss over why some of the current inflections <em>don&#8217;t</em> make sense:</p>
+
+<ul>
+<li><code>axis/testis &lt;=&gt; axes/testes</code>: special rules that should be defined as irregularities</li>
+<li><code>octopus/virus &lt;=&gt; octopi/viri</code>: special rules which are actually disputed, as octopuses and viruses are more used and accepted</li>
+<li><code>octopi/viri =&gt; octopi/viri</code>: these words are not singular, so pluralization should not even be attempted.</li>
+<li><code>alias/status &lt;=&gt; aliases/statuses</code>: special rules even though this follows a regular pluralization rule</li>
+<li><code>buffalo/tomato =&gt; buffaloes/tomatoes</code>: special rules even though these are also regular plurals</li>
+<li><code>*hive &lt;=&gt; *hives</code>: a special rule even though this is a regular plural</li>
+<li><code>matrix/vertex/index &lt;=&gt; matrices/vertices/indices</code>: while this makes sense, indices/indexes are both accepted depending on context. Matrices/Vertices are probably not used enough in Rails applications to warrant a provided rule.</li>
+<li><code>mouse/louse &lt;=&gt; mice/lice</code>: words that will never see the light of day in Rails applications.</li>
+<li><code>news &lt;=&gt; news</code>: A special rule that could have been an <code>uncountable</code>. The frequency of the word &#8220;news&#8221; in Rails applications is also debatable.</li>
+<li><code>ox &lt;=&gt; oxen</code>: A special rule that should be an irregularity, but will also likely never be used in Rails applications</li>
+<li><code>oxen =&gt; oxen</code>: A special rule even though oxen is not singular</li>
+<li><code>quiz &lt;=&gt; quizzes</code>: A special rule that should be defined as an irregularity, though I feel similarly towards this irregularity as I do matrices/vertices.</li>
+</ul>
+
+
+<p>Clearly, something is amiss here. Rails core team members say that Rails can not include all inflections and that exceptions should be defined by the user in the inflections initializer generated with every new Rails application. I agree, but that&#8217;s not the practice I&#8217;m seeing here. Rails&#8217; inflections are riddled with poorly defined singularization and pluralization rules that are not even rules in the first place.</p>
+
+<p>Some of the inflections I referred to above are defined as special cases even though they follow a regular pluralization rule. Many shouldn&#8217;t be defined in the first place, even as irregularities instead of singularization/pluralization rules. When was the last time you saw an application using buffalo, tomato, mouse, louse, ox, or octopus as a model? The &#8220;Zombie&#8221; rule was only added because a website devoted to Rails tutorials, <a href="http://railsforzombies.org/">Rails for Zombies</a>, noticed that <a href="https://github.com/rails/rails/pull/2457">generators were singularizing &#8220;zombies&#8221; as &#8220;zomby&#8221;</a> due to &#8220;zombies&#8221; being irregular. Perhaps a better idea would have been to take that as an opportunity to provide a quick lesson on inflections to new Rails users.</p>
+
+<p>Oh, and don&#8217;t even get me started on the ridiculously added, archaic plural form of &#8220;cow&#8221;: <code>inflect.irregular('cow', 'kine')</code></p>
+
+<p>Of course, there are some exceptions and irregularities that make sense to define. To name a few, &#8220;child&#8221; is a frequently-used term in programming and computer science, &#8220;person&#8221; is a somewhat frequently-used model name in Rails applications, and &#8220;half&#8221; or &#8220;life&#8221; are also used frequently in programming depending on the area. I won&#8217;t argue that they should be defined within the framework as irregularities.</p>
+
+<h2>Rails 4.0 is coming - it&#8217;s time to .unfreeze inflections</h2>
+
+<p>With Rails 4.0 on its way, isn&#8217;t now a good time to clean up the inflections? Isn&#8217;t a major release the perfect time to eschew the worry of breaking existing applications for the betterment of the framework? Rails is a huge piece of software; any upgrades should be done with caution. Users should be expected to read the CHANGELOG when upgrading even from minor versions, and they should read the upgrade guides that Rails provides with each minor version bump. Inflections do not need to be backwards compatible. We should fix the inflections that are clearly exceptions and not rules, note it in the CHANGELOG and upgrade guides, and move on with our lives. Developers who blindly upgrade their Rails versions are asking for hurt, and freezing an area of the framework that needs improvement is the wrong approach.</p>
+
+<h2>Until then, a better set of defaults:</h2>
+
+<p>Until Rails core decides its time to clean up inflections, I&#8217;ve provided a more sane set of singularization and pluralization rules in the form of a gem:</p>
+
+<p><a href="https://github.com/davidcelis/inflections">https://github.com/davidcelis/inflections</a></p>
+
+<p>Here&#8217;s the difference:</p>
+
+<p>4 pluralization   rules (down from 21)</p>
+
+<p>5 singularization rules (down from 27)</p>
+
+<p>3 irregularities        (down from 7)</p>
+
+<p>1 uncountable           (down from 10)</p>
+
+<p>Ahhh. Much better.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Collaborative Filtering With Likes and Dislikes]]></title>
+    <link href="http://davidcelis.github.io/blog/2012/02/07/collaborative-filtering-with-likes-and-dislikes/"/>
+    <updated>2012-02-07T13:10:00-08:00</updated>
+    <id>http://davidcelis.github.io/blog/2012/02/07/collaborative-filtering-with-likes-and-dislikes</id>
+    <content type="html"><![CDATA[<p>Ah, caught your attention, did I? Well, now that I have it, I&#8217;d like to sit down and have a chat. We need to talk, friend, and we <em>need</em> to talk about collaborative filtering. It&#8217;s a technique used in recommendation engines. Please repeat the following:</p>
+
+<blockquote><p>This is collaborative filtering. There are many different kinds of collaborative filtering, but mine is memory-based. Memory-based collaborative filtering is my best friend.</p><footer><strong>Gunnery Seargeant Hartman</strong> <cite>Full Metal Jacket</cite></footer></blockquote>
+
+
+<p>Okay, so I may be taking some creative liberty with this one. You shouldn&#8217;t be best friends with any one form of collaborative filtering. They all deserve love and they all have their uses. I&#8217;m sure the gunnery seargeant would agree with me! However, I <em>would</em> like to focus on memory-based collaborative filtering today as the algorithms that fall into this category are used often in recommender systems. Additionally, I&#8217;m going to go ahead and shift us into the context of a binary rating system: likes and dislikes. Okay? Okay!</p>
+
+<!--more-->
+
+
+<p>My good (but not best!) friend, memory-based collaborative filtering, uses submitted ratings to calculate a numeric similarity between users. Wait, what!? You mean that two people can be compared and that comparison can yield a number? You bet! We can <em>all</em> be reduced to numbers. It&#8217;s a Brave New World, reader! These similarity values can then be used to predict how a user will feel about items they have not yet rated. The top predictions are given back to the user in the form of recommendations! It&#8217;s like having your mind read. Except by a computer! And instead of reading your mind, it&#8217;s doing math!</p>
+
+<p>There are a good number of different algorithms used in memory-based collaborative filtering to calculate the similarity between users. A few of the more widely used algorithms or formulae include <a href="http://en.wikipedia.org/wiki/Euclidean_distance">Euclidean Distance</a>, <a href="http://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient">Pearson&#8217;s Correlation</a>, <a href="http://en.wikipedia.org/wiki/Cosine_similarity">Cosine-based vector similarity</a>, and the <a href="http://en.wikipedia.org/wiki/K-nearest_neighbor_algorithm">k-Nearest Neighbor algorithm</a>. These are all well documented on the internets and multiple example implementations are available should you wish to know more. They&#8217;re all great for the heavily-used five-star system, but that&#8217;s so common! So boring! So passé! I want to talk about something <em>else</em>. I want to talk about an algorithm I don&#8217;t see used often but would work great for my other friends, Like and Dislike. I want to talk about the Jaccard similarity coefficient!</p>
+
+<h2>Jean-Luc Jaccard?</h2>
+
+<p>No, no, no. I&#8217;m talking about Paul Jaccard, a botanist that performed research near the turn of the 20th century. Jaccard&#8217;s research led him to develop the <em>coefficient de communauté</em>, or what is known in English as the Jaccard similarity coefficient (also called the Jaccard index). The Jaccard index is a simple calculation of similarity between sample sets. Where the aforementioned collaborative filtering algorithms can quickly become mathematically complex, the Jaccard index is rather simple! It can be described as the size of the intersection between two sample sets divided by the size of the union between the same sample sets. Look over there! It&#8217;s math!</p>
+
+<p><img src="http://latex.codecogs.com/png.latex?J(u_1,u_2)=\frac{\left%20|u_1%20\bigcap%20u_2\right%20|}{\left%20|u_1\bigcup%20u_2%20\right%20|}"></p>
+
+<p>I bet those mushy brain-gears of yours are already slimily grinding away at how intuitive this formula can be when used with likes and dislikes!</p>
+
+<p>Let&#8217;s say we&#8217;re comparing two users u<sub>1</sub> and u<sub>2</sub>. How does one intersect two users? How does one union them? Well, we don&#8217;t want to intersect or union the people themselves. This isn&#8217;t Mary Shelly&#8217;s <em>Frankenstein</em>! If we&#8217;re using the Jaccard index for collaborative filtering, we want both of these operations to deal with the users&#8217; ratings. Let&#8217;s say that the intersection is the set of only the items that the two users have rated in common. This would make the union the combined set of items that each user has rated independently of the other. But how does this work with the actual ratings? Let&#8217;s modify the formula a bit to deal with the likes and dislikes themselves:</p>
+
+<p><img src="http://latex.codecogs.com/png.latex?J(u_1,u_2)=\frac{\left%20|L_{u1}%20\bigcap%20L_{u2}\right%20|+\left%20|D_{u1}%20\bigcap%20D_{u2}\right%20|}{\left%20|u_1\bigcup%20u_2%20\right%20|}"></p>
+
+<p>Now we&#8217;re getting somewhere! What we have now is looking more collaborative and filtery for sure. We find the number of items that both u<sub>1</sub> and u<sub>2</sub> like, add it to the number of items that both u<sub>1</sub> and u<sub>2</sub> dislike, and then divide that by the total number of different items that u<sub>1</sub> and u<sub>2</sub> have rated.</p>
+
+<h2>Hey, wait! I like [INSERT THING HERE] and he doesn&#8217;t!</h2>
+
+<p>Well first of all, shame on him. [INSERT THING HERE] is gold, Jerry! Solid gold! But also, you raise an excellent point, sir and/or madam! Disagreements should, at the very least, matter just as much as agreements. Let&#8217;s tweak the formula a bit more, shall we?</p>
+
+<p><img src="http://latex.codecogs.com/png.latex?J(u_1,u_2)=\frac{\left%20|L_{u1}%20\bigcap%20L_{u2}\right%20|+\left%20|D_{u1}%20\bigcap%20D_{u2}\right%20|-\left%20|L_{u1}%20\bigcap%20D_{u2}\right%20|-\left%20|D_{u1}%20\bigcap%20L_{u2}\right%20|}{\left%20|u_1\bigcup%20u_2%20\right%20|}"></p>
+
+<p>Whew! This looks a lot more complex than the original formula, but it&#8217;s still quite simple! I promise! Now, in addition to finding the agreements between u<sub>1</sub> and u<sub>2</sub>, we&#8217;re finding their disagreements! The agreements between u<sub>1</sub> and u<sub>2</sub> are the same as before. Their disagreements are conversely defined as the number of items that u<sub>1</sub> likes but u<sub>2</sub> dislikes and vice versa. All we do is subtract the number of disagreements from the number of agreements, and divide by the total number of items liked or disliked across the two users. Easy!</p>
+
+<p>It is worth noting that the similiarity value calculated has a bounds of -1 and 1. You would have a -1.0 similarity value with your polar opposite (your evil twin that has rated the same items as you, but differently) and a 1.0 similarity value with your clone (you have both rated the same items in the same ways).</p>
+
+<h2>Okay, read my mind!</h2>
+
+<p>Now that we can reduce the relationship between two people to a number, lets use that number to predict whether you&#8217;ll like or dislike something. Neat! Let&#8217;s say we want to predict how you&#8217;ll feel about <em>thing</em>. We get every user in our system that has rated <em>thing</em> and start calculating a hive-mind sum. Feel free to fear the hive-mind sum, as the hive-mind sum demands your respect! If a user liked <em>thing</em>, we add your similarity value with them to the hive-mind sum. If they disliked it, we subtract instead! The idea behind this is that if someone with tastes similar to yours likes <em>thing</em>, you&#8217;ll probably like it too. If they dislike it, you&#8217;re less likely to enjoy <em>thing</em>. But if a user with tastes dissimilar to yours likes <em>thing</em>, you&#8217;re LESS likely to hit that &#8220;Like&#8221; button and vice versa. Moving right along, we finally take this hive-mind sum and divide it by the total number of people that have rated <em>thing</em>. Done! Woah, what? That was easy! Look, more math!</p>
+
+<p><img src="http://latex.codecogs.com/png.latex?P(you,%20thing)=\frac{\sum_{i=1}^{n_L}%20J(you,%20u_i)%20-%20\sum_{i=1}^{n_D}J(you,%20u_i)}{n_L%20+%20n_D}"></p>
+
+<p>In this equation: <em>thing</em> is the thing we want to know if <em>you</em> will like, <em>n<sub>L</sub></em> is the number of users that have liked <em>thing</em>, and <em>n<sub>D</sub></em> is the number of users that have disliked <em>thing</em>. Good? Good!</p>
+
+<h2>Just show me the code!</h2>
+
+<p>Well, aren&#8217;t we impatient? Fine. I suppose you&#8217;ve waited this long. Here&#8217;s a simple pseudo-implementation of some sweet, sweet Jaccardian collaborative filtering. In Ruby, of course!</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">User</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">similarity_with</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+</span><span class='line'>    <span class="c1"># Array#&amp; is the set intersection operator.</span>
+</span><span class='line'>    <span class="n">agreements</span> <span class="o">=</span> <span class="p">(</span><span class="nb">self</span><span class="o">.</span><span class="n">likes</span> <span class="o">&amp;</span> <span class="n">user</span><span class="o">.</span><span class="n">likes</span><span class="p">)</span><span class="o">.</span><span class="n">size</span>
+</span><span class='line'>    <span class="n">agreements</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">self</span><span class="o">.</span><span class="n">dislikes</span> <span class="o">&amp;</span> <span class="n">user</span><span class="o">.</span><span class="n">dislikes</span><span class="p">)</span><span class="o">.</span><span class="n">size</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">disagreements</span> <span class="o">=</span> <span class="p">(</span><span class="nb">self</span><span class="o">.</span><span class="n">likes</span> <span class="o">&amp;</span> <span class="n">user</span><span class="o">.</span><span class="n">dislikes</span><span class="p">)</span><span class="o">.</span><span class="n">size</span>
+</span><span class='line'>    <span class="n">disagreements</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">self</span><span class="o">.</span><span class="n">dislikes</span> <span class="o">&amp;</span> <span class="n">user</span><span class="o">.</span><span class="n">likes</span><span class="p">)</span><span class="o">.</span><span class="n">size</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># Array#| is the set union operator</span>
+</span><span class='line'>    <span class="n">total</span> <span class="o">=</span> <span class="p">(</span><span class="nb">self</span><span class="o">.</span><span class="n">likes</span> <span class="o">+</span> <span class="nb">self</span><span class="o">.</span><span class="n">dislikes</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">likes</span> <span class="o">+</span> <span class="n">user</span><span class="o">.</span><span class="n">dislikes</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="p">(</span><span class="n">agreements</span> <span class="o">-</span> <span class="n">disagreements</span><span class="p">)</span> <span class="o">/</span> <span class="n">total</span><span class="o">.</span><span class="n">size</span><span class="o">.</span><span class="n">to_f</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">prediction_for</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">hive_mind_sum</span> <span class="o">=</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span>
+</span><span class='line'>    <span class="n">rated_by</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">liked_by</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="n">item</span><span class="o">.</span><span class="n">disliked_by</span><span class="o">.</span><span class="n">size</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">item</span><span class="o">.</span><span class="n">liked_by</span><span class="o">.</span><span class="n">each</span> <span class="p">{</span><span class="o">|</span><span class="n">u</span><span class="o">|</span> <span class="n">hive_mind_sum</span> <span class="o">+=</span> <span class="nb">self</span><span class="o">.</span><span class="n">similarity_with</span><span class="p">(</span><span class="n">u</span><span class="p">)}</span>
+</span><span class='line'>    <span class="n">item</span><span class="o">.</span><span class="n">disliked_by</span><span class="o">.</span><span class="n">each</span> <span class="p">{</span><span class="o">|</span><span class="n">u</span><span class="o">|</span> <span class="n">hive_mind_sum</span> <span class="o">-=</span> <span class="nb">self</span><span class="o">.</span><span class="n">similarity_with</span><span class="p">(</span><span class="n">u</span><span class="p">)}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">hive_mind_sum</span> <span class="o">/</span> <span class="n">rated_by</span><span class="o">.</span><span class="n">to_f</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is nice and simple and is more or less the way I do things in <a href="http://github.com/davidcelis/recommendable">recommendable</a> and <a href="http://goodbre.ws/">goodbre.ws</a>. I did, however, tweak the algorithm in one major way. For example, in that last stage of calculating the similarity values, I actually divide by <code>self.likes.size + self.dislikes.size</code>. With this change, the similarity value becomes dependent on the number of items that <code>self</code> has rated, but not the number of items that <code>user</code> has rated. As such, this makes their similarity values not be reflective:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">self</span><span class="o">.</span><span class="n">similarity_with</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="o">==</span> <span class="n">user</span><span class="o">.</span><span class="n">similarity_with</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span>
+</span><span class='line'><span class="c1">#=&gt; false unless self.ratings.size == user.ratings.size</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>My reasoning behind this is that newer users who have not had a chance to submit likes and dislikes for many objects should not be punished for simply being new. Recommendations for new users can really suck! Say I&#8217;ve submitted ratings for five items, you&#8217;ve submitted ratings for fifty, and four of these items are the same. If we share the same ratings for three of those items, I want my similarity value for you to be high. I&#8217;m new here! It will potentially help me get better recommendations faster. You, on the other hand&#8230; You&#8217;ve seen things, man. You don&#8217;t need handouts from the system. Your similarity value with me should be much lower.</p>
+
+<h2>The Conclusioning</h2>
+
+<p>Clearly, the Jaccardian similarity coefficient is a very intuitive way to compare people when the rating system is binary. The other algorithms I mentioned are pretty cool too, but Likes/Dislikes and set math were just made for each other. They&#8217;re like peanut butter and jelly. Bananas and Nutella. Charlie Sheen and cocaine. It&#8217;s a beautiful marriage that I hope will last forever, even if I wasn&#8217;t invited to the wedding.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Why I Hate Five-Star Ratings]]></title>
+    <link href="http://davidcelis.github.io/blog/2012/02/01/why-i-hate-five-star-ratings/"/>
+    <updated>2012-02-01T11:50:00-08:00</updated>
+    <id>http://davidcelis.github.io/blog/2012/02/01/why-i-hate-five-star-ratings</id>
+    <content type="html"><![CDATA[<p>A question I get often when discussing <a href="http://goodbre.ws/">goodbre.ws</a> and, more recently,
+<a href="http://github.com/davidcelis/recommendable">recommendable</a>, is why I chose to implement a system based on Likes and
+Dislikes rather than the more standard five-star rating scale. Usually, I&#8217;m
+short and succinct: I think that star rating systems suck. Sometimes, I do go
+into a bit more detail: I think that star rating systems really suck. However,
+I&#8217;m starting to think that people may be asking this question and expecting some
+sort of &#8220;actual answer&#8221;, so today I would like to go into just why I think that
+the five-star rating scale is terrible, and why I decided to use the binary
+system of likes and dislikes.</p>
+
+<!--more-->
+
+
+<h2>The ★★★★★ scale</h2>
+
+<p>The star rating scale is arguably the most classic of all, so it&#8217;s not
+surprising that a lot of websites use it. Big e-commerce sites like Amazon and
+eBay utilize the five-star scale, and Netflix also uses a five-star scale to
+power its review system and recommendations. There are, of course, variations.
+IMDB uses a ten-star scale, which may as well be a 5-star scale that allows half
+stars (such as reviews on BeerAdvocate). There are a lot of ways to handle the
+star-scale, but what I&#8217;d like to get at is that they all suck.</p>
+
+<h3>Ambiguity and uncertainty of the scale</h3>
+
+<p>One of my big gripes about the five-star scale is ambiguity behind the ratings
+that you are allowed to give. What exactly distinguishes between three stars and
+four stars? What is enough to push your rating up to that next star? What is
+enough to pull it down? Because of a lack of clarity, star ratings can end up
+being very subjective. It is easy to end up with two people who give an item the
+same three-star rating but actually feel differently about it. Some websites
+attempt to handle this reasonably. Netflix, for instance, used to present some
+explanatory text for each star when hovering over them during a rating:</p>
+
+<p>★ (Hated it)<br/>
+★★ (Didn&#8217;t like it)<br/>
+★★★ (Liked it)<br/>
+★★★★ (Really liked it)<br/>
+★★★★★ (Loved it)</p>
+
+<p>At the time of writing this post, Netflix no longer displays this text when
+submitting a rating. Instead, posting a rating to Netflix now closely resembles
+the act of doing so on Amazon: you are simply presented with five clickable
+stars and left alone with your fears and preconceptions. This is how it often is
+when submitting a star rating.</p>
+
+<p>However, even the explanatory text itself can end up coming off as subjective.
+What does it mean to &#8220;really&#8221; like a movie? Why are the intervals between the
+options unequal (i.e. no &#8220;Really disliked it&#8221; option)? The explanatory text can
+help if done correctly, but it can also simply add to the subjectivity of
+submitted ratings.</p>
+
+<h3>Unreliability of ratings</h3>
+
+<p>Because a star rating scale iteslf is so ambiguous and uncertain, so too are the
+ratings submitted to it. Many users will not use this scale as intended even
+with intent given in the form of explanatory text. Many users <em>will</em> use the
+scale as intended, but that usage is always based on their subjective ability to
+understand the way the scale should be used.</p>
+
+<p>Despite this, recommendation systems will accept these ratings as statistically
+accurate communications. Websites with huge samples of users and ratings may not
+seem to be negatively affected by the unreliable nature of these ratings. It is
+likely that that this unreliability becomes normalized as the data sample grows.
+Smaller websites and recommendation systems experiencing the &#8221;<a href="http://en.wikipedia.org/wiki/Cold_start">cold start</a>&#8221;,
+however, will suffer due to the subjective nature of its small rating sample.</p>
+
+<h3>Binary voting is already happening</h3>
+
+<p><span class='pullquote-right' data-pullquote='Seems like when it comes to ratings it&#8217;s pretty much all or nothing. Great videos prompt action; anything less prompts indifference.'>
+Despite being a scale with five possible ratings, people tend to
+vote in a binary fashion anyway. Back in 2009, YouTube <a href="http://youtube-global.blogspot.com/2009/09/five-stars-dominate-ratings.html">published some
+interesting data</a> concerning the ratings that videos had been receiving. As
+it turns out, a huge majority of videos would receive mostly five-star ratings.
+I think that YouTube&#8217;s takeaway from this data was spot on. &#34;Seems like when it comes to ratings it&#8217;s pretty much all or nothing. Great videos prompt action; anything less prompts indifference.&#34; The second highest rating was,
+of course, one star. This is a great example of binary voting in the works. A
+lot of people give mostly five-star ratings for things they like. If they
+don&#8217;t like that thing, they either give it one star or simply bounce and skip
+rating it entirely. I&#8217;ve also spoken to friends and acquaintances who admit to
+giving almost exclusively four-star ratings to things they like, and three-
+star ratings to things that are &#8220;just ok&#8221;.
+</span></p>
+
+<p>YouTube toyed with the idea of switching their rating system to a &#8220;favorites&#8221;
+system to &#8220;declare your love for a video&#8221;, but ultimately settled on the thumbs
+up or down options we know and love today. There was some level of outcry from
+YouTube users expressing dismay at the change in rating scale, but there&#8217;s been
+no evidence to support this group as anything more than a loud minority.</p>
+
+<h2>The binary scale (and why it&#8217;s better)</h2>
+
+<p>Binary rating scales are another popular system. As mentioned earlier, YouTube
+now operates on a thumbs up or down rating scale. Other websites that utilize a
+similar scale include reddit (upvotes and downvotes) and digg (digging or
+burying). Some social networking sites take this even a step further and remove
+the negative rating option entirely (e.g. Facebook only has likes and Google+
+has only has the +1 button). I&#8217;d like to focus on the classic Like/Dislike pair.
+What makes this system better than a five-star system?</p>
+
+<h3>Less ambiguous</h3>
+
+<p>The binary rating scale removes a large amount of ambiguity present in the star
+rating systems. Five (or more) subjective rating options are aggregated down
+into two options based on words that are easily understandable by native
+speakers of the language. It is much easier for a person to declare, &#8220;Hey, I
+like this thing&#8221; than it is to determine, &#8220;Well, I like this thing&#8230; But do I
+&#8216;three stars&#8217; like it, or do I &#8216;four stars&#8217; like it?&#8221;</p>
+
+<h3>Less subjective</h3>
+
+<p>A large amount of subjectivity is also removed. Ratings given that are based
+directly on feelings are much more likely to match than ratings given based on
+numbers. This can simplify a lot of situations in which two people may have
+similar feelings about something but rated it different:</p>
+
+<ul>
+<li>Me: &#8220;I liked this thing and rated it four stars.&#8221;<br/>
+Friend: &#8220;I liked this thing and rated it five stars.&#8221;</li>
+<li>Me: &#8220;I liked this thing and rated it three stars.&#8221;<br/>
+Friend: &#8220;I didn&#8217;t like this thing, so I only gave it three stars.&#8221;</li>
+</ul>
+
+
+<p>Our feelings about something are clearly not conveyed well by star ratings, and
+they don&#8217;t match. As I posited earlier, this can normalize given a large set of
+data, but this does not change that we have no way of knowing whether or not the
+underlying ratings are truly indicative of agreement. Given a binary scale,
+however, agreement is much more clear: &#8220;We both liked this thing&#8221; or &#8220;we both
+disliked this thing.&#8221;</p>
+
+<h3>People are already doing this!</h3>
+
+<p>Third, as stated earlier, <em>people are pretty much already rating in this way</em>.
+Why fight it?</p>
+
+<h3>No middle ground</h3>
+
+<p>Of course, the Like/Dislike system is not without its own flaws. Most notably,
+unless implemented, there isn&#8217;t an explicit neutral ground in a binary rating
+system aside from abstaining from a vote. It&#8217;s an all-or-nothing situation in
+which you either like something or you don&#8217;t. This may or may not be an issue
+for you as the implementor. Personally, when I&#8217;m ready to rate an item, I can
+always manage to categorize it into a like or dislike even if its very close.
+However, if I were to truly feel 100% neutral about something, I would likely
+ignore that thing and move on rather than rate it. If I have no feelings either
+way, why would I want it affecting my recommendations?</p>
+
+<h2>tl;dr</h2>
+
+<p>Embrace the binary rating system. It&#8217;s much less ambiguous and subjective than
+its stellar cousin, and it&#8217;s much easier for the user to deal with in general.
+Feelings themselves are more easily comparable than numbers indirectly based on
+feelings and can lead to more accurate recommendations.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Recommendable]]></title>
+    <link href="http://davidcelis.github.io/blog/2012/01/28/recommendable/"/>
+    <updated>2012-01-28T17:39:00-08:00</updated>
+    <id>http://davidcelis.github.io/blog/2012/01/28/recommendable</id>
+    <content type="html"><![CDATA[<p>A small side-project that I&#8217;ve had conceptualized for several months has
+finally come to fruition! I&#8217;m speaking of Recommenable, a Rails Engine that I
+have been hard at work on for the past couple of days. Some of you may be
+familiar with a website I run called <a href="http://goodbre.ws/">Goodbre.ws</a>. Goodbre.ws is a
+recommendation engine for beer that operates using Likes and Dislikes rather
+than the more traditional ★★★★★ rating system. If you&#8217;re curious as to why I
+chose likes and dislikes, I&#8217;m planning a post soon that goes more into depth
+on this. Since I wrote Goodbre.ws, I&#8217;ve wanted to strip the logic for the
+recommendation engine itself out and make it available as an
+easily-includeable plugin for others. Late last night, I did just that, and the
+first working version is available for all to use. So, I would like to present
+you with&#8230;</p>
+
+<h2>Recommendable</h2>
+
+<p>Recommendable is an engine that, when installed, will insert a
+recommendation engine into your existing Ruby on Rails application. This
+will give a specified User class the immediate ability to being liking and
+disliking other Models in your application. Once your users have liked or
+disliked even a single thing, they&#8217;ll start to receive personalized
+recommendations!</p>
+
+<!--more-->
+
+
+<h2>Installation</h2>
+
+<p><em>Note: Recommendable relies on Redis to run. The rest of this post assumes
+that it&#8217;s installed. It&#8217;s easily installed on Mac OS X using homebrew</em> (<code>brew
+install redis</code>).<em> Linux users can use</em> <code>apt-get</code> <em>or build from source.</em></p>
+
+<p>To install Recommendable, simply add the following to your Rails application&#8217;s
+<code>Gemfile</code>:</p>
+
+<figure class='code'><figcaption><span>Gemfile </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s2">&quot;recommendable&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then&#8230;</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>bundle install
+</span><span class='line'><span class="nv">$ </span>rails generate recommendable:install
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will do several things:</p>
+
+<ol>
+<li>Create Recommendable&#8217;s initializer file (located at
+<code>config/initializers/recommendable.rb</code>)</li>
+<li>Copy migrations for Recommendable&#8217;s Like, Dislike and Ignore models</li>
+<li>Run those migrations for you</li>
+</ol>
+
+
+<p>After running the installation generator, you should check the initializer if
+you need to do configuration for Redis.</p>
+
+<p>Finally, Recommendable uses Resque to establish a queue that your users will
+be placed in after liking or disliking an object. This is to prevent other
+requests to your webserver from taking too long. Assuming your Redis server is
+running, run the following command as many times as you wish:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ QUEUE</span><span class="o">=</span>recommendable rake environment resque:work
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Each time this command will run, a Resque worker will fire up and be ready for
+action. Of course, each worker will use RAM separately, so take note of how
+many are safe to use on your production server! This is a standard rake task
+included in Resque so, for more options you can pass to it, check
+<a href="http://github.com/defunkt/resque">defunkt/resque</a></p>
+
+<h2>Usage</h2>
+
+<p>In your Rails model that represents your application&#8217;s user:</p>
+
+<figure class='code'><figcaption><span>app/models/user.rb </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">recommends</span> <span class="ss">:movies</span><span class="p">,</span> <span class="ss">:shows</span><span class="p">,</span> <span class="ss">:other_things</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># ...</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And that&#8217;s it! Your User instances are ready to like, dislike, and get recommendations! For more information on how to use Recommendable once you&#8217;ve
+installed it and set up your user model, head over to
+<a href="http://github.com/davidcelis/recommendable">davidcelis/recommendable</a> and check out the README.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[To Build A Home (Cinematic Orchestra)]]></title>
+    <link href="http://davidcelis.github.io/blog/2011/12/12/to-build-a-home/"/>
+    <updated>2011-12-12T21:25:00-08:00</updated>
+    <id>http://davidcelis.github.io/blog/2011/12/12/to-build-a-home</id>
+    <content type="html"><![CDATA[<p>Ah, &#8220;To Build A Home&#8221;. A depressing song by Cinematic Orchestra. A beautiful song, however, as many sad songs are. I love this song and it has a piano focus, which could only mean one thing: I had to cover it. I did. Here it is.</p>
+
+<!--more-->
+
+
+
+
+<div class="video-container">
+  <iframe width="" height="" src="http://www.youtube.com/embed/a57EQ1jQkDY " frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+</div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Your Ex-Lover Is Dead (Stars)]]></title>
+    <link href="http://davidcelis.github.io/blog/2011/07/12/your-ex-lover-is-dead/"/>
+    <updated>2011-07-12T01:35:00-07:00</updated>
+    <id>http://davidcelis.github.io/blog/2011/07/12/your-ex-lover-is-dead</id>
+    <content type="html"><![CDATA[<p>This is one of my favorite songs. Back in 2005, Canadian Indie band Stars released this song as a single. In 2007, they released another album aptly entitled <a href="http://en.wikipedia.org/wiki/Do_You_Trust_Your_Friends%3F"><em>Do You Trust Your Friends?</em></a> full of remixes by, well, their friends. Well-known artist <a href="http://en.wikipedia.org/wiki/Owen_Pallett">Owen Pallett</a>, then known as <a href="http://www.dominorecordco.com/uk/news/18-12-09/final-fantasy-name-change-to-owen-pallett/">Final Fantasy</a>, took it upon himself to arrange this song for piano, vocals and strings.</p>
+
+<!--more-->
+
+
+<p><a href="http://www.youtube.com/watch?v=x4cZyF2i5yw">YouTube video of the song</a> (Owen Pallett’s version)</p>
+
+<p><a href="http://www.youtube.com/watch?v=r5Or6-HOveg">The original Stars version</a></p>
+
+<p>This is a song I really wanted to learn to play on the piano and sing. Usually I’m great at picking things up by ear, but the orchestra playing along with the piano made it difficult in this case. I decided to see if there was any sheet music that had been printed for the song. Unfortunately, I found only a single, unofficial transcription that pretty much sucked. I got fed up and decided to transcribe it myself. I think I did a really good job, and I’m fairly sure it’s at as accurate as it can be.</p>
+
+<p>So, without further ado, <a href="http://dl.dropbox.com/u/94814/Slingshot/Pictures/Your%20Ex-Lover%20Is%20Dead%20(Final%20Fantasy).pdf">this is my transcription</a> for Owen Pallet&#8217;s version of &#8220;Your Ex-Lover Is Dead&#8221; by Stars for piano and vocals. As far as I can tell, it&#8217;s extremely accurate. Here&#8217;s a video so you can hear how it sounds before you play it yourself.</p>
+
+<div class="video-container">
+  <iframe width="" height="" src="http://www.youtube.com/embed/1A7fp6gI0b8 " frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+</div>
+
+
+
+]]></content>
+  </entry>
+  
+</feed>

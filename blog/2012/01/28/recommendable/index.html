@@ -1,0 +1,279 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Recommendable - davidcel.is</title>
+	<meta name="author" content="David Celis">
+
+	
+	<meta name="description" content="A small side-project that I&#8217;ve had conceptualized for several months has
+finally come to fruition! I&#8217;m speaking of Recommenable, a Rails &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="davidcel.is" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+</head>
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">davidcel.is</a></h1>
+<nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+  <li><a href="/about">Meet David</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</nav>
+<nav id="mobile-nav">
+	<div class="alignleft menu">
+		<a class="button">Menu</a>
+		<div class="container"><ul class="main">
+	<li><a href="/">Blog</a></li>
+  <li><a href="/about">Meet David</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</div>
+	</div>
+	<div class="alignright search">
+		<a class="button"></a>
+		<div class="container">
+			<form action="http://google.com/search" method="get">
+				<input type="text" name="q" results="0">
+				<input type="hidden" name="q" value="site:davidcelis.github.io">
+			</form>
+		</div>
+	</div>
+</nav>
+<nav id="sub-nav" class="alignright">
+	<div class="social">
+		
+		<a class="facebook" href="http://www.facebook.com/davidcelis" title="Facebook">Facebook</a>
+		
+		
+		
+		<a class="twitter" href="http://twitter.com/davidcelis" title="Twitter">Twitter</a>
+		
+		
+		<a class="github" href="https://github.com/davidcelis" title="GitHub">GitHub</a>
+		
+		
+		
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+	<form class="search" action="http://google.com/search" method="get">
+		<input class="alignright" type="text" name="q" results="0">
+		<input type="hidden" name="q" value="site:davidcelis.github.io">
+	</form>
+</nav>
+
+</header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h1 class="title">Recommendable</h1>
+	<div class="entry-content"><p>A small side-project that I&#8217;ve had conceptualized for several months has
+finally come to fruition! I&#8217;m speaking of Recommenable, a Rails Engine that I
+have been hard at work on for the past couple of days. Some of you may be
+familiar with a website I run called <a href="http://goodbre.ws/">Goodbre.ws</a>. Goodbre.ws is a
+recommendation engine for beer that operates using Likes and Dislikes rather
+than the more traditional ★★★★★ rating system. If you&#8217;re curious as to why I
+chose likes and dislikes, I&#8217;m planning a post soon that goes more into depth
+on this. Since I wrote Goodbre.ws, I&#8217;ve wanted to strip the logic for the
+recommendation engine itself out and make it available as an
+easily-includeable plugin for others. Late last night, I did just that, and the
+first working version is available for all to use. So, I would like to present
+you with&#8230;</p>
+
+<h2>Recommendable</h2>
+
+<p>Recommendable is an engine that, when installed, will insert a
+recommendation engine into your existing Ruby on Rails application. This
+will give a specified User class the immediate ability to being liking and
+disliking other Models in your application. Once your users have liked or
+disliked even a single thing, they&#8217;ll start to receive personalized
+recommendations!</p>
+
+<!--more-->
+
+
+<h2>Installation</h2>
+
+<p><em>Note: Recommendable relies on Redis to run. The rest of this post assumes
+that it&#8217;s installed. It&#8217;s easily installed on Mac OS X using homebrew</em> (<code>brew
+install redis</code>).<em> Linux users can use</em> <code>apt-get</code> <em>or build from source.</em></p>
+
+<p>To install Recommendable, simply add the following to your Rails application&#8217;s
+<code>Gemfile</code>:</p>
+
+<figure class='code'><figcaption><span>Gemfile </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s2">&quot;recommendable&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then&#8230;</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>bundle install
+</span><span class='line'><span class="nv">$ </span>rails generate recommendable:install
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will do several things:</p>
+
+<ol>
+<li>Create Recommendable&#8217;s initializer file (located at
+<code>config/initializers/recommendable.rb</code>)</li>
+<li>Copy migrations for Recommendable&#8217;s Like, Dislike and Ignore models</li>
+<li>Run those migrations for you</li>
+</ol>
+
+
+<p>After running the installation generator, you should check the initializer if
+you need to do configuration for Redis.</p>
+
+<p>Finally, Recommendable uses Resque to establish a queue that your users will
+be placed in after liking or disliking an object. This is to prevent other
+requests to your webserver from taking too long. Assuming your Redis server is
+running, run the following command as many times as you wish:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ QUEUE</span><span class="o">=</span>recommendable rake environment resque:work
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Each time this command will run, a Resque worker will fire up and be ready for
+action. Of course, each worker will use RAM separately, so take note of how
+many are safe to use on your production server! This is a standard rake task
+included in Resque so, for more options you can pass to it, check
+<a href="http://github.com/defunkt/resque">defunkt/resque</a></p>
+
+<h2>Usage</h2>
+
+<p>In your Rails model that represents your application&#8217;s user:</p>
+
+<figure class='code'><figcaption><span>app/models/user.rb </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">recommends</span> <span class="ss">:movies</span><span class="p">,</span> <span class="ss">:shows</span><span class="p">,</span> <span class="ss">:other_things</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># ...</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And that&#8217;s it! Your User instances are ready to like, dislike, and get recommendations! For more information on how to use Recommendable once you&#8217;ve
+installed it and set up your user model, head over to
+<a href="http://github.com/davidcelis/recommendable">davidcelis/recommendable</a> and check out the README.</p>
+</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-01-28T17:39:00-08:00" pubdate data-updated="true">Jan 28<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/programming/'>Programming</a>, <a class='category' href='/blog/categories/rails/'>Rails</a>, <a class='category' href='/blog/categories/recommendable/'>Recommendable</a>, <a class='category' href='/blog/categories/ruby/'>Ruby</a>
+
+
+</div>
+	
+		<span class="comments"><a href="#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script>
+</div>
+
+
+
+<section id="comment">
+    <h1 class="title">Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2013
+
+    David Celis
+
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'davidcelis';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://davidcelis.github.io/blog/2012/01/28/recommendable/';
+        var disqus_url = 'http://davidcelis.github.io/blog/2012/01/28/recommendable/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-28731352-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+
+</body>
+</html>

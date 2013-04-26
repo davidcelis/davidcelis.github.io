@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Recommendable | davidcel.is]]></title>
+  <link href="http://davidcelis.github.io/blog/categories/recommendable/atom.xml" rel="self"/>
+  <link href="http://davidcelis.github.io/"/>
+  <updated>2013-04-26T16:57:14-07:00</updated>
+  <id>http://davidcelis.github.io/</id>
+  <author>
+    <name><![CDATA[David Celis]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[From 1.5 GB to 50 MB: The Story of my Redis Database]]></title>
+    <link href="http://davidcelis.github.io/blog/2013/03/20/the-story-of-my-redis-database/"/>
+    <updated>2013-03-20T11:42:00-07:00</updated>
+    <id>http://davidcelis.github.io/blog/2013/03/20/the-story-of-my-redis-database</id>
+    <content type="html"><![CDATA[<p>It's been a while since I updated anybody on the current state of goodbre.ws. To make a long story short, I am in the midst of rewriting the site entirely. There are (or were) mainly two large problems for me. One big, niggling problem is that managing the database of beers on my own is impossible. My solution to this is to delegate that out to <a href="http://www.brewerydb.com/">BreweryDB</a>. They have so much more information on their beers than I do that it actually warrants a large rewrite of goodbre.ws. People have consistently asked for a more browsing-oriented experience as opposed to the current search-oriented experience. I'm going to deliver on that. The other big problem was how much memory my Redis instance was taking. Well, I have a small story about that. Yesterday, I reduced that memory usage from 1.5 GB to just 50 MB.</p>
+
+<!--more-->
+
+
+<p>Last year, with the press on goodbre.ws came a small horde of new users. I found myself with a userbase of about 7000 people. Quite a change from humble beginnings of only a couple hundred friends, classmates and colleagues. However, with all of these new people came a few problems. First, my background jobs to refresh recommendations slowed waaay down. I eventually discovered an I/O bottleneck in the background worker that was hitting both Postgres and Redis more than it reasonably should have been. However, as more and more people were getting their recommendations, I saw my server's RAM usage
+quickly get worse and worse. It wasn't long before the amount of RAM that Redis was trying to use had exceeded the amount of RAM on my server (1 GB). I was forced to take goobre.ws down, and here we are.</p>
+
+<p>I started doing a lot of thinking about my Redis usage. What could possibly be causing it to use that much memory? I considered the length of my keys. Typical redis keys looked something like <code>recommendable:users:1234:liked_beers</code>. Okay. Multiply that by five for each user (for dislikes, bookmarks, hidden beers, etc.) and there's a lot of repetition in the key names. They're also quite long. Maybe Redis was eating memory by storing tens of thousands of really long key names in RAM? I decided to try shortening them to a more reasonable format: <code>u:1234:lb</code> for example.</p>
+
+<p>With lots of hope, I renamed my keys and restarted Redis. Hopes dashed: that reduced memory usage by a paltry 0.01 GB. That's 10 MB which, for RAM, may be worth exploring again in the future. However, it obviously wasn't my main problem.</p>
+
+<p>Optimization is a rabbithole I've not had to go down very often. I am hardly an expert. I let my own self-consiousness and self-doubt  get in the way of doing real testing. I immediately jumped to conclusions that, perhaps, Redis was not the tool I wanted to be using. Maybe I should revert to storing ratings in PostgreSQL and accept what would certainly be a large performance hit during recommendation generation.</p>
+
+<p>I toyed with the idea of finding some other data store. I couldn't find a key-value store that, like Redis, had sets and sorted sets but, unlike redis, was not in-memory. I also didn't want to give up the in-memory bit. It's just so fast. The SET and ZSET data structures were also far too perfect for my usage. But what could I do? Redis obviously was becoming too expensive for me. I would have to find something else.</p>
+
+<p>I thought about moving my ratings into a Neo4j graph database. It could make for an interesting way of generating recommendations: it could be a simple graph traversal out from a user to connected (similar) users to find beers that those users like frequently. That would probably even be faster. However, the recommendations themselves would not be as good.</p>
+
+<p>I also thought about simply moving the ratings back into Postgres and initializing some sort of Ruby Set mapping when the Rails app booted up, but that would probably take just as much memory if not more. I'd only be moving RAM usage from Redis to Rails.</p>
+
+<p>Finally, yesterday, I did what I should have done in the first place. I downloaded a <a href="https://github.com/sripathikrishnan/redis-rdb-tools">memory profiling tool</a> built for Redis that would give me key-by-key memory usage stats. What I discovered was surprising, because it outlined a problem I remember thinking about a long time ago. So long ago, in fact, that I thought I had already addressed it.</p>
+
+<p>My issue was how much data I was retaining in each sorted set (ZSET). Each user gets two ZSETs. One is used to store user similarities, and pairs other users' IDs with a calculated similarity value as the rank. The other ZSET stores recommendations, pairing beer IDs with the probability of them liking that beer. In each ZSET, I was keeping those values for every other user and for every other beer. Multiply that by what became a database of 7000 users and 60000 beers and, well, you can guess. Let's just say that a lot of these sets were over 1 MB each.</p>
+
+<p>I thought I was already truncating the ZSETs filled with similarity values by using a k-Nearest-Neighbor setting that I had introduced to Recommendable. That setting uses some specified number of similar users when generating recommendations as opposed to every user. Enabling that setting reduced the size of each similarity set from around 7000 values to 200 (100 similar users and 100 dissimilar users).</p>
+
+<p>Additionally, I implemented a setting to specify how many recommendations should be kept at any one time for each user. I only ever show 10 recommendations, so maintaining those probabilities for every single beer was ridiculous. I reduced that to 100 as well so people can immediately get more recommendations if they rate their current ones.</p>
+
+<p>After truncating all of the sets to their specified lengths, I watched in awe as the memory Redis had been consuming dropped from 1.5 GB to 50 MB. I don't think I'll be having memory usage issues with Redis for a long time.</p>
+
+<p>If you're a <a href="https://github.com/davidcelis/recommendable">Recommendable</a> user, I highly suggest you make use of the <code>nearest_neighbors</code>, <code>furthest_neighbors</code>, and <code>recommendations_to_store</code> settings.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[The State of Recommendations in goodbre.ws]]></title>
+    <link href="http://davidcelis.github.io/blog/2012/10/03/the-state-of-recommendations-in-goodbrews/"/>
+    <updated>2012-10-03T11:27:00-07:00</updated>
+    <id>http://davidcelis.github.io/blog/2012/10/03/the-state-of-recommendations-in-goodbrews</id>
+    <content type="html"><![CDATA[<p><em>NOTE: This post has been updated. Please click through to read that.</em></p>
+
+<p>Hello, friends and new faces. I want to take a moment to address a question that many of you have had on your mind since you came to <a href="https://goodbre.ws/">goodbre.ws</a>.</p>
+
+<p><blockquote><p>Where are my recommendations?</p><footer><strong>Pretty Much Everybody</strong> <cite></cite></footer></blockquote></p>
+
+<!--more-->
+
+
+<p>There is (obviously) a problem with how long it is taking for your recommendations to be delivered, and I want to respond to that. I never expected goodbre.ws to be gaining popularity at its current speed. It's all beyond what I had hoped for and is very exciting. You likely found goodbre.ws on <a href="http://lifehacker.com/5947790/goodbrews-tracks-the-beer-you-like-suggests-brews-youd-love">Lifehacker</a> or <a href="http://www.huffingtonpost.com/2012/10/01/goodbrews-beer-recommendations-exploration-website_n_1930567.html?utm_hp_ref=technology">The Huffington Post</a>. I was surprised to discover goodbre.ws was suddenly getting press, and the spikes of traffic have made for a stressful (albeit exciting) few days.</p>
+
+<p>Mainly, however, the heavy increase of traffic has shown me that my current way of serving recommendations isn't particularly scalable. As people join the site, recommendations become exponentially slower. But don't fret! I'm currently working on what will end up being a complete overhaul of <a href="https://github.com/davidcelis/recommendable">Recommendable</a>, the library that I wrote to power goodbre.ws. I'm hoping to have a solution out the door in the next week or two, and I think that it will alleviate this problem.</p>
+
+<p>Until then, some newer users may not see any recommendations at all. I apologize for this. But I also appreciate patience during this period as I figure out what to do with goodbre.ws. Please keep in mind that I'm just one guy doing this on my free time and trying to provide what I think is a really simple and really cool service. Meanwhile, I think that goodbre.ws is still a great way to keep track of the beers you like and don't like. I've been getting great feedback and suggestions from so many people, so I hope that you'll continue to use the site during the next week or two with the understanding that recommendations <em>are</em> coming soon.</p>
+
+<p>Thank you for being patient.</p>
+
+<p><em>UPDATE (14:52 PST, 16 October 2012): Several days ago, I updated <a href="https://github.com/davidcelis/recommendable">recommendable</a> to be much speedier with Recommendations. If you're still not seeing recommendations, please rate one more beer. This will place you in a (now very small) queue, out of which 25 jobs can be processed in parallel. Once your turn comes, it takes about 10 minutes on average to get recommendations. Once you get them, you'll always have them. Any further ratings just improve accuracy. So just be patient for that initial process.</em></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Collaborative Filtering With Likes and Dislikes]]></title>
+    <link href="http://davidcelis.github.io/blog/2012/02/07/collaborative-filtering-with-likes-and-dislikes/"/>
+    <updated>2012-02-07T13:10:00-08:00</updated>
+    <id>http://davidcelis.github.io/blog/2012/02/07/collaborative-filtering-with-likes-and-dislikes</id>
+    <content type="html"><![CDATA[<p>Ah, caught your attention, did I? Well, now that I have it, I'd like to sit down and have a chat. We need to talk, friend, and we <em>need</em> to talk about collaborative filtering. It's a technique used in recommendation engines. Please repeat the following:</p>
+
+<p><blockquote><p>This is collaborative filtering. There are many different kinds of collaborative filtering, but mine is memory-based. Memory-based collaborative filtering is my best friend.</p><footer><strong>Gunnery Seargeant Hartman</strong> <cite>Full Metal Jacket</cite></footer></blockquote></p>
+
+<p>Okay, so I may be taking some creative liberty with this one. You shouldn't be best friends with any one form of collaborative filtering. They all deserve love and they all have their uses. I'm sure the gunnery seargeant would agree with me! However, I <em>would</em> like to focus on memory-based collaborative filtering today as the algorithms that fall into this category are used often in recommender systems. Additionally, I'm going to go ahead and shift us into the context of a binary rating system: likes and dislikes. Okay? Okay!</p>
+
+<!--more-->
+
+
+<p>My good (but not best!) friend, memory-based collaborative filtering, uses submitted ratings to calculate a numeric similarity between users. Wait, what!? You mean that two people can be compared and that comparison can yield a number? You bet! We can <em>all</em> be reduced to numbers. It's a Brave New World, reader! These similarity values can then be used to predict how a user will feel about items they have not yet rated. The top predictions are given back to the user in the form of recommendations! It's like having your mind read. Except by a computer! And instead of reading your mind, it's doing math!</p>
+
+<p>There are a good number of different algorithms used in memory-based collaborative filtering to calculate the similarity between users. A few of the more widely used algorithms or formulae include <a href="http://en.wikipedia.org/wiki/Euclidean_distance">Euclidean Distance</a>, <a href="http://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient">Pearson's Correlation</a>, <a href="http://en.wikipedia.org/wiki/Cosine_similarity">Cosine-based vector similarity</a>, and the <a href="http://en.wikipedia.org/wiki/K-nearest_neighbor_algorithm">k-Nearest Neighbor algorithm</a>. These are all well documented on the internets and multiple example implementations are available should you wish to know more. They're all great for the heavily-used five-star system, but that's so common! So boring! So passé! I want to talk about something <em>else</em>. I want to talk about an algorithm I don't see used often but would work great for my other friends, Like and Dislike. I want to talk about the Jaccard similarity coefficient!</p>
+
+<h2>Jean-Luc Jaccard?</h2>
+
+<p>No, no, no. I'm talking about Paul Jaccard, a botanist that performed research near the turn of the 20th century. Jaccard's research led him to develop the <em>coefficient de communauté</em>, or what is known in English as the Jaccard similarity coefficient (also called the Jaccard index). The Jaccard index is a simple calculation of similarity between sample sets. Where the aforementioned collaborative filtering algorithms can quickly become mathematically complex, the Jaccard index is rather simple! It can be described as the size of the intersection between two sample sets divided by the size of the union between the same sample sets. Look over there! It's math!</p>
+
+<p><img src="http://latex.codecogs.com/png.latex?J(u_1,u_2)=\frac{\left%20|u_1%20\bigcap%20u_2\right%20|}{\left%20|u_1\bigcup%20u_2%20\right%20|}"></p>
+
+<p>I bet those mushy brain-gears of yours are already slimily grinding away at how intuitive this formula can be when used with likes and dislikes!</p>
+
+<p>Let's say we're comparing two users u<sub>1</sub> and u<sub>2</sub>. How does one intersect two users? How does one union them? Well, we don't want to intersect or union the people themselves. This isn't Mary Shelly's <em>Frankenstein</em>! If we're using the Jaccard index for collaborative filtering, we want both of these operations to deal with the users' ratings. Let's say that the intersection is the set of only the items that the two users have rated in common. This would make the union the combined set of items that each user has rated independently of the other. But how does this work with the actual ratings? Let's modify the formula a bit to deal with the likes and dislikes themselves:</p>
+
+<p><img src="http://latex.codecogs.com/png.latex?J(u_1,u_2)=\frac{\left%20|L<em>{u1}%20\bigcap%20L</em>{u2}\right%20|+\left%20|D<em>{u1}%20\bigcap%20D</em>{u2}\right%20|}{\left%20|u_1\bigcup%20u_2%20\right%20|}"></p>
+
+<p>Now we're getting somewhere! What we have now is looking more collaborative and filtery for sure. We find the number of items that both u<sub>1</sub> and u<sub>2</sub> like, add it to the number of items that both u<sub>1</sub> and u<sub>2</sub> dislike, and then divide that by the total number of different items that u<sub>1</sub> and u<sub>2</sub> have rated.</p>
+
+<h2>Hey, wait! I like [INSERT THING HERE] and he doesn't!</h2>
+
+<p>Well first of all, shame on him. [INSERT THING HERE] is gold, Jerry! Solid gold! But also, you raise an excellent point, sir and/or madam! Disagreements should, at the very least, matter just as much as agreements. Let's tweak the formula a bit more, shall we?</p>
+
+<p><img src="http://latex.codecogs.com/png.latex?J(u_1,u_2)=\frac{\left%20|L<em>{u1}%20\bigcap%20L</em>{u2}\right%20|+\left%20|D<em>{u1}%20\bigcap%20D</em>{u2}\right%20|-\left%20|L<em>{u1}%20\bigcap%20D</em>{u2}\right%20|-\left%20|D<em>{u1}%20\bigcap%20L</em>{u2}\right%20|}{\left%20|u_1\bigcup%20u_2%20\right%20|}"></p>
+
+<p>Whew! This looks a lot more complex than the original formula, but it's still quite simple! I promise! Now, in addition to finding the agreements between u<sub>1</sub> and u<sub>2</sub>, we're finding their disagreements! The agreements between u<sub>1</sub> and u<sub>2</sub> are the same as before. Their disagreements are conversely defined as the number of items that u<sub>1</sub> likes but u<sub>2</sub> dislikes and vice versa. All we do is subtract the number of disagreements from the number of agreements, and divide by the total number of items liked or disliked across the two users. Easy!</p>
+
+<p>It is worth noting that the similiarity value calculated has a bounds of -1 and 1. You would have a -1.0 similarity value with your polar opposite (your evil twin that has rated the same items as you, but differently) and a 1.0 similarity value with your clone (you have both rated the same items in the same ways).</p>
+
+<h2>Okay, read my mind!</h2>
+
+<p>Now that we can reduce the relationship between two people to a number, lets use that number to predict whether you'll like or dislike something. Neat! Let's say we want to predict how you'll feel about <em>thing</em>. We get every user in our system that has rated <em>thing</em> and start calculating a hive-mind sum. Feel free to fear the hive-mind sum, as the hive-mind sum demands your respect! If a user liked <em>thing</em>, we add your similarity value with them to the hive-mind sum. If they disliked it, we subtract instead! The idea behind this is that if someone with tastes similar to yours likes <em>thing</em>, you'll probably like it too. If they dislike it, you're less likely to enjoy <em>thing</em>. But if a user with tastes dissimilar to yours likes <em>thing</em>, you're LESS likely to hit that "Like" button and vice versa. Moving right along, we finally take this hive-mind sum and divide it by the total number of people that have rated <em>thing</em>. Done! Woah, what? That was easy! Look, more math!</p>
+
+<p><img src="http://latex.codecogs.com/png.latex?P(you,%20thing)=\frac{\sum_{i=1}<sup>{n_L}%20J(you,%20u_i)%20-%20\sum_{i=1}<sup>{n_D}J(you,%20u_i)}{n_L%20+%20n_D}</sup></sup>"></p>
+
+<p>In this equation: <em>thing</em> is the thing we want to know if <em>you</em> will like, <em>n<sub>L</sub></em> is the number of users that have liked <em>thing</em>, and <em>n<sub>D</sub></em> is the number of users that have disliked <em>thing</em>. Good? Good!</p>
+
+<h2>Just show me the code!</h2>
+
+<p>Well, aren't we impatient? Fine. I suppose you've waited this long. Here's a simple pseudo-implementation of some sweet, sweet Jaccardian collaborative filtering. In Ruby, of course!</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">User</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">similarity_with</span><span class="p">(</span><span class="n">user</span><span class="p">)</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;pre&gt;&lt;code&gt;# Array#&amp;amp; is the set intersection operator.</span>
+</span><span class='line'><span class="sr">agreements = (self.likes &amp;amp; user.likes).size</span>
+</span><span class='line'><span class="sr">agreements += (self.dislikes &amp;amp; user.dislikes).size</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">disagreements = (self.likes &amp;amp; user.dislikes).size</span>
+</span><span class='line'><span class="sr">disagreements += (self.dislikes &amp;amp; user.likes).size</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr"># Array#| is the set union operator</span>
+</span><span class='line'><span class="sr">total = (self.likes + self.dislikes) | (user.likes + user.dislikes)</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">return (agreements - disagreements) /</span> <span class="n">total</span><span class="o">.</span><span class="n">size</span><span class="o">.</span><span class="n">to_f</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sr">/code&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>  <span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;  def prediction_for(item)&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">hive_mind_sum</span> <span class="o">=</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span>
+</span><span class='line'><span class="n">rated_by</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">liked_by</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="n">item</span><span class="o">.</span><span class="n">disliked_by</span><span class="o">.</span><span class="n">size</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">item</span><span class="o">.</span><span class="n">liked_by</span><span class="o">.</span><span class="n">each</span> <span class="p">{</span><span class="o">|</span><span class="n">u</span><span class="o">|</span> <span class="n">hive_mind_sum</span> <span class="o">+=</span> <span class="nb">self</span><span class="o">.</span><span class="n">similarity_with</span><span class="p">(</span><span class="n">u</span><span class="p">)}</span>
+</span><span class='line'><span class="n">item</span><span class="o">.</span><span class="n">disliked_by</span><span class="o">.</span><span class="n">each</span> <span class="p">{</span><span class="o">|</span><span class="n">u</span><span class="o">|</span> <span class="n">hive_mind_sum</span> <span class="o">-=</span> <span class="nb">self</span><span class="o">.</span><span class="n">similarity_with</span><span class="p">(</span><span class="n">u</span><span class="p">)}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">return</span> <span class="n">hive_mind_sum</span> <span class="o">/</span> <span class="n">rated_by</span><span class="o">.</span><span class="n">to_f</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sr">/code&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>This is nice and simple and is more or less the way I do things in <a href="http://github.com/davidcelis/recommendable">recommendable</a> and <a href="http://goodbre.ws/">goodbre.ws</a>. I did, however, tweak the algorithm in one major way. For example, in that last stage of calculating the similarity values, I actually divide by <code>self.likes.size + self.dislikes.size</code>. With this change, the similarity value becomes dependent on the number of items that <code>self</code> has rated, but not the number of items that <code>user</code> has rated. As such, this makes their similarity values not be reflective:</p>
+
+<p>```ruby
+self.similarity_with(user) == user.similarity_with(self)</p>
+
+<h1>=> false unless self.ratings.size == user.ratings.size</h1>
+
+<p>```</p>
+
+<p>My reasoning behind this is that newer users who have not had a chance to submit likes and dislikes for many objects should not be punished for simply being new. Recommendations for new users can really suck! Say I've submitted ratings for five items, you've submitted ratings for fifty, and four of these items are the same. If we share the same ratings for three of those items, I want my similarity value for you to be high. I'm new here! It will potentially help me get better recommendations faster. You, on the other hand... You've seen things, man. You don't need handouts from the system. Your similarity value with me should be much lower.</p>
+
+<h2>The Conclusioning</h2>
+
+<p>Clearly, the Jaccardian similarity coefficient is a very intuitive way to compare people when the rating system is binary. The other algorithms I mentioned are pretty cool too, but Likes/Dislikes and set math were just made for each other. They're like peanut butter and jelly. Bananas and Nutella. Charlie Sheen and cocaine. It's a beautiful marriage that I hope will last forever, even if I wasn't invited to the wedding.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Why I Hate Five-Star Ratings]]></title>
+    <link href="http://davidcelis.github.io/blog/2012/02/01/why-i-hate-five-star-ratings/"/>
+    <updated>2012-02-01T11:50:00-08:00</updated>
+    <id>http://davidcelis.github.io/blog/2012/02/01/why-i-hate-five-star-ratings</id>
+    <content type="html"><![CDATA[<p>A question I get often when discussing <a href="http://goodbre.ws/">goodbre.ws</a> and, more recently,
+<a href="http://github.com/davidcelis/recommendable">recommendable</a>, is why I chose to implement a system based on Likes and
+Dislikes rather than the more standard five-star rating scale. Usually, I'm
+short and succinct: I think that star rating systems suck. Sometimes, I do go
+into a bit more detail: I think that star rating systems really suck. However,
+I'm starting to think that people may be asking this question and expecting some
+sort of "actual answer", so today I would like to go into just why I think that
+the five-star rating scale is terrible, and why I decided to use the binary
+system of likes and dislikes.</p>
+
+<!--more-->
+
+
+<h2>The ★★★★★ scale</h2>
+
+<p>The star rating scale is arguably the most classic of all, so it's not
+surprising that a lot of websites use it. Big e-commerce sites like Amazon and
+eBay utilize the five-star scale, and Netflix also uses a five-star scale to
+power its review system and recommendations. There are, of course, variations.
+IMDB uses a ten-star scale, which may as well be a 5-star scale that allows half
+stars (such as reviews on BeerAdvocate). There are a lot of ways to handle the
+star-scale, but what I'd like to get at is that they all suck.</p>
+
+<h3>Ambiguity and uncertainty of the scale</h3>
+
+<p>One of my big gripes about the five-star scale is ambiguity behind the ratings
+that you are allowed to give. What exactly distinguishes between three stars and
+four stars? What is enough to push your rating up to that next star? What is
+enough to pull it down? Because of a lack of clarity, star ratings can end up
+being very subjective. It is easy to end up with two people who give an item the
+same three-star rating but actually feel differently about it. Some websites
+attempt to handle this reasonably. Netflix, for instance, used to present some
+explanatory text for each star when hovering over them during a rating:</p>
+
+<p>★ (Hated it)<br/>
+★★ (Didn't like it)<br/>
+★★★ (Liked it)<br/>
+★★★★ (Really liked it)<br/>
+★★★★★ (Loved it)</p>
+
+<p>At the time of writing this post, Netflix no longer displays this text when
+submitting a rating. Instead, posting a rating to Netflix now closely resembles
+the act of doing so on Amazon: you are simply presented with five clickable
+stars and left alone with your fears and preconceptions. This is how it often is
+when submitting a star rating.</p>
+
+<p>However, even the explanatory text itself can end up coming off as subjective.
+What does it mean to "really" like a movie? Why are the intervals between the
+options unequal (i.e. no "Really disliked it" option)? The explanatory text can
+help if done correctly, but it can also simply add to the subjectivity of
+submitted ratings.</p>
+
+<h3>Unreliability of ratings</h3>
+
+<p>Because a star rating scale iteslf is so ambiguous and uncertain, so too are the
+ratings submitted to it. Many users will not use this scale as intended even
+with intent given in the form of explanatory text. Many users <em>will</em> use the
+scale as intended, but that usage is always based on their subjective ability to
+understand the way the scale should be used.</p>
+
+<p>Despite this, recommendation systems will accept these ratings as statistically
+accurate communications. Websites with huge samples of users and ratings may not
+seem to be negatively affected by the unreliable nature of these ratings. It is
+likely that that this unreliability becomes normalized as the data sample grows.
+Smaller websites and recommendation systems experiencing the "<a href="http://en.wikipedia.org/wiki/Cold_start">cold start</a>",
+however, will suffer due to the subjective nature of its small rating sample.</p>
+
+<h3>Binary voting is already happening</h3>
+
+<p><span class='pullquote-right' data-pullquote='Seems like when it comes to ratings it&#8217;s pretty much all or nothing. Great videos prompt action; anything less prompts indifference.'>
+Despite being a scale with five possible ratings, people tend to
+vote in a binary fashion anyway. Back in 2009, YouTube <a href="http://youtube-global.blogspot.com/2009/09/five-stars-dominate-ratings.html">published some
+interesting data</a> concerning the ratings that videos had been receiving. As
+it turns out, a huge majority of videos would receive mostly five-star ratings.
+I think that YouTube's takeaway from this data was spot on. \"Seems like when it comes to ratings it's pretty much all or nothing. Great videos prompt action; anything less prompts indifference.\" The second highest rating was,
+of course, one star. This is a great example of binary voting in the works. A
+lot of people give mostly five-star ratings for things they like. If they
+don't like that thing, they either give it one star or simply bounce and skip
+rating it entirely. I've also spoken to friends and acquaintances who admit to
+giving almost exclusively four-star ratings to things they like, and three-
+star ratings to things that are "just ok".
+</span></p>
+
+<p>YouTube toyed with the idea of switching their rating system to a "favorites"
+system to "declare your love for a video", but ultimately settled on the thumbs
+up or down options we know and love today. There was some level of outcry from
+YouTube users expressing dismay at the change in rating scale, but there's been
+no evidence to support this group as anything more than a loud minority.</p>
+
+<h2>The binary scale (and why it's better)</h2>
+
+<p>Binary rating scales are another popular system. As mentioned earlier, YouTube
+now operates on a thumbs up or down rating scale. Other websites that utilize a
+similar scale include reddit (upvotes and downvotes) and digg (digging or
+burying). Some social networking sites take this even a step further and remove
+the negative rating option entirely (e.g. Facebook only has likes and Google+
+has only has the +1 button). I'd like to focus on the classic Like/Dislike pair.
+What makes this system better than a five-star system?</p>
+
+<h3>Less ambiguous</h3>
+
+<p>The binary rating scale removes a large amount of ambiguity present in the star
+rating systems. Five (or more) subjective rating options are aggregated down
+into two options based on words that are easily understandable by native
+speakers of the language. It is much easier for a person to declare, "Hey, I
+like this thing" than it is to determine, "Well, I like this thing... But do I
+'three stars' like it, or do I 'four stars' like it?"</p>
+
+<h3>Less subjective</h3>
+
+<p>A large amount of subjectivity is also removed. Ratings given that are based
+directly on feelings are much more likely to match than ratings given based on
+numbers. This can simplify a lot of situations in which two people may have
+similar feelings about something but rated it different:</p>
+
+<ul>
+<li>Me: "I liked this thing and rated it four stars."<br/>
+Friend: "I liked this thing and rated it five stars."</li>
+<li>Me: "I liked this thing and rated it three stars."<br/>
+Friend: "I didn't like this thing, so I only gave it three stars."</li>
+</ul>
+
+
+<p>Our feelings about something are clearly not conveyed well by star ratings, and
+they don't match. As I posited earlier, this can normalize given a large set of
+data, but this does not change that we have no way of knowing whether or not the
+underlying ratings are truly indicative of agreement. Given a binary scale,
+however, agreement is much more clear: "We both liked this thing" or "we both
+disliked this thing."</p>
+
+<h3>People are already doing this!</h3>
+
+<p>Third, as stated earlier, <em>people are pretty much already rating in this way</em>.
+Why fight it?</p>
+
+<h3>No middle ground</h3>
+
+<p>Of course, the Like/Dislike system is not without its own flaws. Most notably,
+unless implemented, there isn't an explicit neutral ground in a binary rating
+system aside from abstaining from a vote. It's an all-or-nothing situation in
+which you either like something or you don't. This may or may not be an issue
+for you as the implementor. Personally, when I'm ready to rate an item, I can
+always manage to categorize it into a like or dislike even if its very close.
+However, if I were to truly feel 100% neutral about something, I would likely
+ignore that thing and move on rather than rate it. If I have no feelings either
+way, why would I want it affecting my recommendations?</p>
+
+<h2>tl;dr</h2>
+
+<p>Embrace the binary rating system. It's much less ambiguous and subjective than
+its stellar cousin, and it's much easier for the user to deal with in general.
+Feelings themselves are more easily comparable than numbers indirectly based on
+feelings and can lead to more accurate recommendations.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Recommendable]]></title>
+    <link href="http://davidcelis.github.io/blog/2012/01/28/recommendable/"/>
+    <updated>2012-01-28T17:39:00-08:00</updated>
+    <id>http://davidcelis.github.io/blog/2012/01/28/recommendable</id>
+    <content type="html"><![CDATA[<p>A small side-project that I've had conceptualized for several months has
+finally come to fruition! I'm speaking of Recommenable, a Rails Engine that I
+have been hard at work on for the past couple of days. Some of you may be
+familiar with a website I run called <a href="http://goodbre.ws/">Goodbre.ws</a>. Goodbre.ws is a
+recommendation engine for beer that operates using Likes and Dislikes rather
+than the more traditional ★★★★★ rating system. If you're curious as to why I
+chose likes and dislikes, I'm planning a post soon that goes more into depth
+on this. Since I wrote Goodbre.ws, I've wanted to strip the logic for the
+recommendation engine itself out and make it available as an
+easily-includeable plugin for others. Late last night, I did just that, and the
+first working version is available for all to use. So, I would like to present
+you with...</p>
+
+<h2>Recommendable</h2>
+
+<p>Recommendable is an engine that, when installed, will insert a
+recommendation engine into your existing Ruby on Rails application. This
+will give a specified User class the immediate ability to being liking and
+disliking other Models in your application. Once your users have liked or
+disliked even a single thing, they'll start to receive personalized
+recommendations!</p>
+
+<!--more-->
+
+
+<h2>Installation</h2>
+
+<p><em>Note: Recommendable relies on Redis to run. The rest of this post assumes
+that it's installed. It's easily installed on Mac OS X using homebrew</em> (<code>brew
+install redis</code>).<em> Linux users can use</em> <code>apt-get</code> <em>or build from source.</em></p>
+
+<p>To install Recommendable, simply add the following to your Rails application's
+<code>Gemfile</code>:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Gemfile </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s2">&quot;recommendable&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Then...</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>bundle install
+</span><span class='line'><span class="nv">$ </span>rails generate recommendable:install
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>This will do several things:</p>
+
+<ol>
+<li>Create Recommendable's initializer file (located at
+<code>config/initializers/recommendable.rb</code>)</li>
+<li>Copy migrations for Recommendable's Like, Dislike and Ignore models</li>
+<li>Run those migrations for you</li>
+</ol>
+
+
+<p>After running the installation generator, you should check the initializer if
+you need to do configuration for Redis.</p>
+
+<p>Finally, Recommendable uses Resque to establish a queue that your users will
+be placed in after liking or disliking an object. This is to prevent other
+requests to your webserver from taking too long. Assuming your Redis server is
+running, run the following command as many times as you wish:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ QUEUE</span><span class="o">=</span>recommendable rake environment resque:work
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Each time this command will run, a Resque worker will fire up and be ready for
+action. Of course, each worker will use RAM separately, so take note of how
+many are safe to use on your production server! This is a standard rake task
+included in Resque so, for more options you can pass to it, check
+<a href="http://github.com/defunkt/resque">defunkt/resque</a></p>
+
+<h2>Usage</h2>
+
+<p>In your Rails model that represents your application's user:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>app/models/user.rb </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">recommends</span> <span class="ss">:movies</span><span class="p">,</span> <span class="ss">:shows</span><span class="p">,</span> <span class="ss">:other_things</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;  # ...</span>
+</span><span class='line'><span class="sr">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>And that's it! Your User instances are ready to like, dislike, and get recommendations! For more information on how to use Recommendable once you've
+installed it and set up your user model, head over to
+<a href="http://github.com/davidcelis/recommendable">davidcelis/recommendable</a> and check out the README.</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,304 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Stop Validating Email Addresses With Your Complex Regex - davidcel.is</title>
+	<meta name="author" content="David Celis">
+
+	
+	<meta name="description" content="Just stop, guys. It&#8217;s a waste of your time and your effort. Put down your Google search for an email regular expression, take a step back, and &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="davidcel.is" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+</head>
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">davidcel.is</a></h1>
+<nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+  <li><a href="/about">Meet David</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</nav>
+<nav id="mobile-nav">
+	<div class="alignleft menu">
+		<a class="button">Menu</a>
+		<div class="container"><ul class="main">
+	<li><a href="/">Blog</a></li>
+  <li><a href="/about">Meet David</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</div>
+	</div>
+	<div class="alignright search">
+		<a class="button"></a>
+		<div class="container">
+			<form action="http://google.com/search" method="get">
+				<input type="text" name="q" results="0">
+				<input type="hidden" name="q" value="site:davidcelis.github.io">
+			</form>
+		</div>
+	</div>
+</nav>
+<nav id="sub-nav" class="alignright">
+	<div class="social">
+		
+		<a class="facebook" href="http://www.facebook.com/davidcelis" title="Facebook">Facebook</a>
+		
+		
+		
+		<a class="twitter" href="http://twitter.com/davidcelis" title="Twitter">Twitter</a>
+		
+		
+		<a class="github" href="https://github.com/davidcelis" title="GitHub">GitHub</a>
+		
+		
+		
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+	<form class="search" action="http://google.com/search" method="get">
+		<input class="alignright" type="text" name="q" results="0">
+		<input type="hidden" name="q" value="site:davidcelis.github.io">
+	</form>
+</nav>
+
+</header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h1 class="title">Stop Validating Email Addresses With Your Complex Regex</h1>
+	<div class="entry-content"><p>Just stop, guys. It&#8217;s a waste of your time and your effort. Put down your Google search for an <a href="http://www.google.com/search?q=email+regex">email regular expression</a>, take a step back, and breathe. There&#8217;s a famous quote that goes:</p>
+
+<blockquote><p>Some people, when confronted with a problem, think, &#8220;I know, I&#8217;ll use regular expressions.&#8221;<br/>Now they have two problems.</p><footer><strong>Jamie Zawinski,</strong> <cite><a href='http://regex.info/blog/2006-09-15/247'>regex.info/blog/2006-09-15/247/&hellip;</a></cite></footer></blockquote>
+
+
+<p>Here&#8217;s a fairly common code sample from Rails Applications with some sort of authentication system:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="c1"># This regex is from https://github.com/plataformatec/devise, the most</span>
+</span><span class='line'>  <span class="c1"># popular Rails authentication library</span>
+</span><span class='line'>  <span class="n">validates_format_of</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="sr">/\A[^@]+@([^@\.]+\.)+[^@\.]+\z/</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This seems fairly simple (unless you don&#8217;t know Regex), but it can get way worse&#8230;</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">validates_format_of</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="sr">/^(|(([A-Za-z0-9]+_+)|([A-Za-z0-9]+\-+)|([A-Za-z0-9]+\.+)|([A-Za-z0-9]+\++))*[A-Za-z0-9]+@((\w+\-+)|(\w+\.))*\w{1,63}\.[a-zA-Z]{2,6})$/i</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Or even worse still&#8230;</p>
+
+<!--more-->
+
+
+
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">validates</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="no">EmailAddressValidator</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">EmailValidator</span> <span class="o">&lt;</span> <span class="no">ActiveModel</span><span class="o">::</span><span class="no">Validator</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_QTEXT</span>           <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s1">&#39;[^\\x0d\\x22\\x5c\\x80-\\xff]&#39;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_DTEXT</span>           <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s1">&#39;[^\\x0d\\x5b-\\x5d\\x80-\\xff]&#39;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_ATOM</span>            <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s1">&#39;[^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+&#39;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_QUOTED_PAIR</span>     <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s1">&#39;\\x5c[\\x00-\\x7f]&#39;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_DOMAIN_LITERAL</span>  <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">x5b(?:</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_DTEXT</span><span class="si">}</span><span class="s2">|</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_QUOTED_PAIR</span><span class="si">}</span><span class="s2">)*</span><span class="se">\\</span><span class="s2">x5d&quot;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_QUOTED_STRING</span>   <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">x22(?:</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_QTEXT</span><span class="si">}</span><span class="s2">|</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_QUOTED_PAIR</span><span class="si">}</span><span class="s2">)*</span><span class="se">\\</span><span class="s2">x22&quot;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_DOMAIN_REF</span>      <span class="o">=</span> <span class="no">EMAIL_ADDRESS_ATOM</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_SUB_DOMAIN</span>      <span class="o">=</span> <span class="s2">&quot;(?:</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_DOMAIN_REF</span><span class="si">}</span><span class="s2">|</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_DOMAIN_LITERAL</span><span class="si">}</span><span class="s2">)&quot;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_WORD</span>            <span class="o">=</span> <span class="s2">&quot;(?:</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_ATOM</span><span class="si">}</span><span class="s2">|</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_QUOTED_STRING</span><span class="si">}</span><span class="s2">)&quot;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_DOMAIN</span>          <span class="o">=</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_SUB_DOMAIN</span><span class="si">}</span><span class="s2">(?:</span><span class="se">\\</span><span class="s2">x2e</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_SUB_DOMAIN</span><span class="si">}</span><span class="s2">)*&quot;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_LOCAL_PART</span>      <span class="o">=</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_WORD</span><span class="si">}</span><span class="s2">(?:</span><span class="se">\\</span><span class="s2">x2e</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_WORD</span><span class="si">}</span><span class="s2">)*&quot;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_SPEC</span>            <span class="o">=</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_LOCAL_PART</span><span class="si">}</span><span class="se">\\</span><span class="s2">x40</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_DOMAIN</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_PATTERN</span>         <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_SPEC</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>  <span class="no">EMAIL_ADDRESS_EXACT_PATTERN</span>   <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">A</span><span class="si">#{</span><span class="no">EMAIL_ADDRESS_SPEC</span><span class="si">}</span><span class="se">\\</span><span class="s2">z&quot;</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">unless</span> <span class="n">record</span><span class="o">.</span><span class="n">email</span> <span class="o">=~</span> <span class="no">EMAIL_ADDRESS_EXACT_PATTERN</span>
+</span><span class='line'>      <span class="n">record</span><span class="o">.</span><span class="n">errors</span><span class="o">[</span><span class="ss">:email</span><span class="o">]</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;is invalid&#39;</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Yeesh. Is something that complex really necessary? If you actually check the Google query I linked above, people have been writing (or trying to write) <a href="http://tools.ietf.org/html/rfc2822">RFC-compliant</a> regular expressions to parse email addresses for years. They can get ridiculously convoluted as in the case above and, according to the specification, are often too strict anyway.</p>
+
+<p>Sections <a href="http://tools.ietf.org/html/rfc2822#section-3.2.4">3.2.4</a> and <a href="http://tools.ietf.org/html/rfc2822#section-3.4.1">3.4.1</a> of the RFC go into the requirements on how an email address needs to be formatted and, well, there&#8217;s not much you can&#8217;t do in your email address when quotes or backslashes are involved. The local string (the part of the email address that comes before the @) can contain the following characters:</p>
+
+<p><code>! $ &amp; * - = ^ ` | ~ # % ' + / ? _ { }</code></p>
+
+<p>But guess what? You can use pretty much any character you want if you escape it by surrounding it in quotes. For example, <code>"Look at all these spaces!"@example.com</code> is a valid email address. Nice.</p>
+
+<p>For this reason, for a time I began running any email address against the following regular expression instead:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">validates_format_of</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="sr">/@/</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Simple, right? Email addresses have to have an @ symbol. This is often the most I do and, when paired with a confirmation field for the email address on your registration form, can alleviate most problems with user error. But what if I told you there were a way to determine whether or not an email is valid without resorting to regular expressions at all? It&#8217;s surprisingly easy, and you&#8217;re probably already doing it anyway.</p>
+
+<h2>Just send them an email already</h2>
+
+<p>No, I&#8217;m not joking. Just send your users an email. The activation email is a practice that&#8217;s been in use for years, but it&#8217;s often paired with complex validations that the email is formatted correctly. If you&#8217;re going to send an activation email to users, why bother using a gigantic regular expression?</p>
+
+<p>Think about it this way: I register for your website under the email address <code>qwiufaisjdbvaadsjghb@gmail.com</code>. C&#8217;mon. That shit&#8217;s probably going to bounce off of the illustrious mail daemon, but the formatting is fine; it&#8217;s a valid email address. To fix this problem, you implement an activation system where, after registering, I am sent an email with a link I must click. This is to verify that I actually own that email address before my account is activated. At this point, why keep parsing email addresses for their format? The result of sending an email to a badly formatted email address would be the same: it&#8217;ll get bounced. If your user enters a bad email address, they won&#8217;t get the activation email and they&#8217;ll try to register again if they really care about using your site. It&#8217;s that simple.</p>
+
+<p>So eschew your fancy regular expressions already. If you really want to do  checking of email addresses right on the signup page, include a confirmation field so they have to type it twice. Enterprising individuals will just copy and paste, but what it comes down to is this: if your user enters a bad email address, you shouldn&#8217;t make it more of a problem for yourself than you have to. A complex regex validation on the email address doesn&#8217;t introduce an additional solution, it introduces an additional problem. If you really, really want to make sure people are typing in an actual email address, just use the <code>/@/</code> regular expression and call it done. Feeling ambitious? Then check for the dot too: <code>/.+@.+\..+/i</code>. Anything more is overkill.</p>
+
+<p><em>UPDATE: As several users in the comments have also pointed out, many email address regexes on the web will show tagged emails (i.e. <code>email+tag@example.com</code>) as invalid. Lots of people use tags in their email addresses while registering as a pair with their email service&#8217;s filtering systems. Keep that in mind if you don&#8217;t wish to heed the above advice.</em></p>
+
+<p><em>Additionally, you should take commenter Travis Dahlke&#8217;s <a href="http://davidcel.is/blog/2012/09/06/stop-validating-email-addresses-with-regex/#comment-642429611">suggestion</a> and look at <a href="https://github.com/Kicksend/mailcheck">Kicksend&#8217;s mail checker</a>.</em></p>
+</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-09-06T10:33:00-07:00" pubdate data-updated="true">Sep 6<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/programming/'>Programming</a>, <a class='category' href='/blog/categories/rails/'>Rails</a>, <a class='category' href='/blog/categories/regex/'>Regex</a>, <a class='category' href='/blog/categories/ruby/'>Ruby</a>
+
+
+</div>
+	
+		<span class="comments"><a href="#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script>
+</div>
+
+
+
+<section id="comment">
+    <h1 class="title">Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2013
+
+    David Celis
+
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'davidcelis';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://davidcelis.github.io/blog/2012/09/06/stop-validating-email-addresses-with-regex/';
+        var disqus_url = 'http://davidcelis.github.io/blog/2012/09/06/stop-validating-email-addresses-with-regex/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-28731352-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+
+</body>
+</html>

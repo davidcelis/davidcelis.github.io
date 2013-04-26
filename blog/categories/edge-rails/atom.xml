@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Edge Rails | davidcel.is]]></title>
+  <link href="http://davidcelis.github.io/blog/categories/edge-rails/atom.xml" rel="self"/>
+  <link href="http://davidcelis.github.io/"/>
+  <updated>2013-04-26T16:57:14-07:00</updated>
+  <id>http://davidcelis.github.io/</id>
+  <author>
+    <name><![CDATA[David Celis]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Edge Rails 4.0: A Multilingual Inflector]]></title>
+    <link href="http://davidcelis.github.io/blog/2012/07/31/edge-rails-a-multilingual-inflector/"/>
+    <updated>2012-07-31T09:50:00-07:00</updated>
+    <id>http://davidcelis.github.io/blog/2012/07/31/edge-rails-a-multilingual-inflector</id>
+    <content type="html"><![CDATA[<p>Here's a sneak peak at an upcoming enhancement for <code>ActiveSupport::Inflector</code> in Rails 4.0. The Inflector is the part of Rails responsible for a good amount of the cool stuff you can do with Strings: pluralization, singularization, titleization, humanization, tableization... The list goes on. Rails uses these methods extensively to map between, say, Model names, Controller names, and the Model's table name.</p>
+
+<p>Currently, the Inflector can handle only one set of rules at a time. Rails provides a lengthy list of singularization and pluralization rules for English, but what if somebody wants to specify how certain words in a foreign language (say Spanish) should be pluralized? In Rails 3, they have two options: they can define the words as irregularities in <code>config/initializers/inflections.rb</code> or put them into locale files. The former is bad because it involves mixing two languages into one set of rules, and the latter can lead to large, cluttered locale files when internationalizing a website. In Rails 4, however, I'm happy to offer a better solution for Rails developers in the process of internationalization: the Inflector is now multilingual. It can manage a complete set of inflection rules for each locale!</p>
+
+<!--more-->
+
+
+<p>Rails will still only provide a list of inflections in English. However, it's now much easier to specify your own set of rules (or have them provided to you via a gem) for additional locales. You can, as previously, specify these rules in <code>config/initializers/inflections.rb</code>:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>config/initializers/inflections.rb </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;Inflector#inflections now takes a locale as a parameter (defaults to :en)&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Inflector</span><span class="o">.</span><span class="n">inflections</span><span class="p">(</span><span class="ss">:es</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">inflect</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/$/</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/([&lt;sup&gt;aeéiou])$/i</span><span class="p">,</span><span class="o">&lt;</span><span class="sr">/sup&gt; &#39;\1es&#39;)</span>
+</span><span class='line'><span class="sr">  inflect.plural(/</span><span class="p">(</span><span class="o">[</span><span class="n">aeiou</span><span class="o">]</span><span class="n">s</span><span class="p">)</span><span class="vg">$/</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;\1&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/z$/i</span><span class="p">,</span> <span class="s1">&#39;ces&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/á([sn])$/i</span><span class="p">,</span> <span class="s1">&#39;a\1es&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/é([sn])$/i</span><span class="p">,</span> <span class="s1">&#39;e\1es&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/í([sn])$/i</span><span class="p">,</span> <span class="s1">&#39;i\1es&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/ó([sn])$/i</span><span class="p">,</span> <span class="s1">&#39;o\1es&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="sr">/ú([sn])$/i</span><span class="p">,</span> <span class="s1">&#39;u\1es&#39;</span><span class="p">)</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;  inflect.singular(/s</span><span class="vg">$/</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">inflect</span><span class="o">.</span><span class="n">singular</span><span class="p">(</span><span class="sr">/es$/</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;  inflect.irregular(&#39;el&#39;, &#39;los&#39;)</span>
+</span><span class='line'><span class="sr">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>After specifying our ruleset for Spanish, we can fire up a Rails console and see it in action:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">rails</span> <span class="n">c</span>
+</span><span class='line'><span class="no">Loading</span> <span class="n">development</span> <span class="n">environment</span> <span class="p">(</span><span class="no">Rails</span> <span class="mi">4</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="n">beta</span><span class="p">)</span>
+</span><span class='line'><span class="o">[</span><span class="mi">1</span><span class="o">]</span> <span class="n">pry</span><span class="p">(</span><span class="n">main</span><span class="p">)</span><span class="o">&gt;</span> <span class="s2">&quot;avión&quot;</span><span class="o">.</span><span class="n">pluralize</span><span class="p">(</span><span class="ss">:es</span><span class="p">)</span>
+</span><span class='line'><span class="o">=&gt;</span> <span class="s2">&quot;aviones&quot;</span>
+</span><span class='line'><span class="o">[</span><span class="mi">2</span><span class="o">]</span> <span class="n">pry</span><span class="p">(</span><span class="n">main</span><span class="p">)</span><span class="o">&gt;</span> <span class="s2">&quot;avión&quot;</span><span class="o">.</span><span class="n">pluralize</span>
+</span><span class='line'><span class="o">=&gt;</span> <span class="s2">&quot;avións&quot;</span>
+</span><span class='line'><span class="o">[</span><span class="mi">3</span><span class="o">]</span> <span class="n">pry</span><span class="p">(</span><span class="n">main</span><span class="p">)</span><span class="o">&gt;</span> <span class="s2">&quot;luz&quot;</span><span class="o">.</span><span class="n">pluralize</span><span class="p">(</span><span class="ss">:es</span><span class="p">)</span>
+</span><span class='line'><span class="o">=&gt;</span> <span class="s2">&quot;luces&quot;</span>
+</span><span class='line'><span class="o">[</span><span class="mi">4</span><span class="o">]</span> <span class="n">pry</span><span class="p">(</span><span class="n">main</span><span class="p">)</span><span class="o">&gt;</span> <span class="s2">&quot;luz&quot;</span><span class="o">.</span><span class="n">pluralize</span>
+</span><span class='line'><span class="o">=&gt;</span> <span class="s2">&quot;luzs&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>The Inflector will still default to English and use <code>:en</code> as the locale unless specified, as opposed to using the application's <code>I18n.default_locale</code>. This is to avoid breaking applications that have been wired internally to use English pluralization rules for mapping between Model, Controller, and table names.</p>
+
+<p>Go ahead and browse the <a href="https://github.com/rails/rails/commit/7db0b073fec6bc3e6f213b58c76e7f43fcc2ab97">commit on GitHub</a>.</p>
+
+<h3>Where can I get rules for other locales?</h3>
+
+<p>I'm proud to offer a solution for this too! I've created a gem called <a href="https://github.com/davidcelis/inflections">Inflections</a> that I'm hoping can serve as a central repository for inflection rules of all locales. Unfortunately, I'm not a master of linguistics. Aside from English, I am only comfortable with Spanish, and so that's the only additional set of inflection rules I have provided thus far (aside from a shorter list of English inflections that I believe to be stripped to the essentials). If you or anybody you know are a Rails developer and fluent in another language, please consider <a href="https://github.com/davidcelis/inflections/fork_select">forking Inflections</a>, making a list of inflections (<code>lib/inflections/&lt;locale&gt;.rb</code>) with tests (<code>test/&lt;locale&gt;_test.rb</code>) and <a href="https://github.com/davidcelis/inflections/pull/new/master">opening a pull request</a>.</p>
+]]></content>
+  </entry>
+  
+</feed>
