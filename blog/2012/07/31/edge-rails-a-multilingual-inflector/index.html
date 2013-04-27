@@ -24,7 +24,6 @@
 	<header id="header" class="inner"><h1><a href="/">davidcel.is</a></h1>
 <nav id="main-nav"><ul class="main">
 	<li><a href="/">Blog</a></li>
-  <li><a href="/about">Meet David</a></li>
 	<li><a href="/blog/archives">Archives</a></li>
 </ul>
 </nav>
@@ -33,7 +32,6 @@
 		<a class="button">Menu</a>
 		<div class="container"><ul class="main">
 	<li><a href="/">Blog</a></li>
-  <li><a href="/about">Meet David</a></li>
 	<li><a href="/blog/archives">Archives</a></li>
 </ul>
 </div>
@@ -60,6 +58,8 @@
 		
 		<a class="github" href="https://github.com/davidcelis" title="GitHub">GitHub</a>
 		
+    
+		
 		
 		
 		
@@ -78,7 +78,7 @@
 		
 	
 	<div id="content" class="inner"><article class="post">
-	<h1 class="title">Edge Rails 4.0: A Multilingual Inflector</h1>
+	<h2 class="title">Edge Rails 4.0: A Multilingual Inflector</h2>
 	<div class="entry-content"><p>Here&#8217;s a sneak peak at an upcoming enhancement for <code>ActiveSupport::Inflector</code> in Rails 4.0. The Inflector is the part of Rails responsible for a good amount of the cool stuff you can do with Strings: pluralization, singularization, titleization, humanization, tableization&#8230; The list goes on. Rails uses these methods extensively to map between, say, Model names, Controller names, and the Model&#8217;s table name.</p>
 
 <p>Currently, the Inflector can handle only one set of rules at a time. Rails provides a lengthy list of singularization and pluralization rules for English, but what if somebody wants to specify how certain words in a foreign language (say Spanish) should be pluralized? In Rails 3, they have two options: they can define the words as irregularities in <code>config/initializers/inflections.rb</code> or put them into locale files. The former is bad because it involves mixing two languages into one set of rules, and the latter can lead to large, cluttered locale files when internationalizing a website. In Rails 4, however, I&#8217;m happy to offer a better solution for Rails developers in the process of internationalization: the Inflector is now multilingual. It can manage a complete set of inflection rules for each locale!</p>
@@ -183,10 +183,9 @@
 
 </div>
 	
-		<span class="comments"><a href="#disqus_thread">Comments</a></span>
+		<div class="comments"><a href="/blog/2012/07/31/edge-rails-a-multilingual-inflector/#disqus_thread">Comments</a></div>
 	
-</div>
-</article>
+</div></article>
 
 	<div class="share">
 	<div class="addthis_toolbox addthis_default_style ">
@@ -203,7 +202,7 @@
 
 
 <section id="comment">
-    <h1 class="title">Comments</h1>
+    <h2 class="title">Comments</h2>
     <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
 </section>
