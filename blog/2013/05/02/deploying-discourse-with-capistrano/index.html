@@ -101,7 +101,7 @@
 <p>Depending on what characters you included in your droplet&#8217;s name, DigitalOcean may not set the hostname correctly. To change my server&#8217;s hostname, I did the following:</p>
 
 <figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo <span class="nb">echo</span> <span class="s1">&#39;forums.goodbre.ws&#39;</span> &gt; /etc/hostname
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo </span>forums.goodbre.ws | sudo tee /etc/hostname
 </span></code></pre></td></tr></table></div></figure>
 
 

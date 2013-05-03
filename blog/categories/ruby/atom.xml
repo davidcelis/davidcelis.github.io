@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ruby | davidcel.is]]></title>
   <link href="http://davidcelis.github.io/blog/categories/ruby/atom.xml" rel="self"/>
   <link href="http://davidcelis.github.io/"/>
-  <updated>2013-05-02T19:37:30-07:00</updated>
+  <updated>2013-05-03T16:49:03-07:00</updated>
   <id>http://davidcelis.github.io/</id>
   <author>
     <name><![CDATA[David Celis]]></name>
@@ -38,7 +38,7 @@
 <p>Depending on what characters you included in your droplet's name, DigitalOcean may not set the hostname correctly. To change my server's hostname, I did the following:</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo <span class="nb">echo</span> <span class="s1">&#39;forums.goodbre.ws&#39;</span> &gt; /etc/hostname
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo </span>forums.goodbre.ws | sudo tee /etc/hostname
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>Because I deployed my installation to <code>forums.goodbre.ws</code>, I changed the first line of my <code>/etc/hosts/</code> file to:</p>
