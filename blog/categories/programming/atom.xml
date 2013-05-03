@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Programming | davidcel.is]]></title>
+  <title><![CDATA[Category: programming | davidcel.is]]></title>
   <link href="http://davidcelis.github.io/blog/categories/programming/atom.xml" rel="self"/>
   <link href="http://davidcelis.github.io/"/>
-  <updated>2013-05-02T10:41:19-07:00</updated>
+  <updated>2013-05-02T18:04:22-07:00</updated>
   <id>http://davidcelis.github.io/</id>
   <author>
     <name><![CDATA[David Celis]]></name>
@@ -12,6 +12,45 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[From 1.5 GB to 50 MB: The Story of my Redis Database]]></title>
+    <link href="http://davidcelis.github.io/blog/2013/03/20/the-story-of-my-redis-database/"/>
+    <updated>2013-03-20T11:42:00-07:00</updated>
+    <id>http://davidcelis.github.io/blog/2013/03/20/the-story-of-my-redis-database</id>
+    <content type="html"><![CDATA[<p>It's been a while since I updated anybody on the current state of goodbre.ws. To make a long story short, I am in the midst of rewriting the site entirely. There are (or were) mainly two large problems for me. One big, niggling problem is that managing the database of beers on my own is impossible. My solution to this is to delegate that out to <a href="http://www.brewerydb.com/">BreweryDB</a>. They have so much more information on their beers than I do that it actually warrants a large rewrite of goodbre.ws. People have consistently asked for a more browsing-oriented experience as opposed to the current search-oriented experience. I'm going to deliver on that. The other big problem was how much memory my Redis instance was taking. Well, I have a small story about that. Yesterday, I reduced that memory usage from 1.5 GB to just 50 MB.</p>
+
+<!--more-->
+
+
+<p>Last year, with the press on goodbre.ws came a small horde of new users. I found myself with a userbase of about 7000 people. Quite a change from humble beginnings of only a couple hundred friends, classmates and colleagues. However, with all of these new people came a few problems. First, my background jobs to refresh recommendations slowed waaay down. I eventually discovered an I/O bottleneck in the background worker that was hitting both Postgres and Redis more than it reasonably should have been. However, as more and more people were getting their recommendations, I saw my server's RAM usage
+quickly get worse and worse. It wasn't long before the amount of RAM that Redis was trying to use had exceeded the amount of RAM on my server (1 GB). I was forced to take goobre.ws down, and here we are.</p>
+
+<p>I started doing a lot of thinking about my Redis usage. What could possibly be causing it to use that much memory? I considered the length of my keys. Typical redis keys looked something like <code>recommendable:users:1234:liked_beers</code>. Okay. Multiply that by five for each user (for dislikes, bookmarks, hidden beers, etc.) and there's a lot of repetition in the key names. They're also quite long. Maybe Redis was eating memory by storing tens of thousands of really long key names in RAM? I decided to try shortening them to a more reasonable format: <code>u:1234:lb</code> for example.</p>
+
+<p>With lots of hope, I renamed my keys and restarted Redis. Hopes dashed: that reduced memory usage by a paltry 0.01 GB. That's 10 MB which, for RAM, may be worth exploring again in the future. However, it obviously wasn't my main problem.</p>
+
+<p>Optimization is a rabbithole I've not had to go down very often. I am hardly an expert. I let my own self-consiousness and self-doubt  get in the way of doing real testing. I immediately jumped to conclusions that, perhaps, Redis was not the tool I wanted to be using. Maybe I should revert to storing ratings in PostgreSQL and accept what would certainly be a large performance hit during recommendation generation.</p>
+
+<p>I toyed with the idea of finding some other data store. I couldn't find a key-value store that, like Redis, had sets and sorted sets but, unlike redis, was not in-memory. I also didn't want to give up the in-memory bit. It's just so fast. The SET and ZSET data structures were also far too perfect for my usage. But what could I do? Redis obviously was becoming too expensive for me. I would have to find something else.</p>
+
+<p>I thought about moving my ratings into a Neo4j graph database. It could make for an interesting way of generating recommendations: it could be a simple graph traversal out from a user to connected (similar) users to find beers that those users like frequently. That would probably even be faster. However, the recommendations themselves would not be as good.</p>
+
+<p>I also thought about simply moving the ratings back into Postgres and initializing some sort of Ruby Set mapping when the Rails app booted up, but that would probably take just as much memory if not more. I'd only be moving RAM usage from Redis to Rails.</p>
+
+<p>Finally, yesterday, I did what I should have done in the first place. I downloaded a <a href="https://github.com/sripathikrishnan/redis-rdb-tools">memory profiling tool</a> built for Redis that would give me key-by-key memory usage stats. What I discovered was surprising, because it outlined a problem I remember thinking about a long time ago. So long ago, in fact, that I thought I had already addressed it.</p>
+
+<p>My issue was how much data I was retaining in each sorted set (ZSET). Each user gets two ZSETs. One is used to store user similarities, and pairs other users' IDs with a calculated similarity value as the rank. The other ZSET stores recommendations, pairing beer IDs with the probability of them liking that beer. In each ZSET, I was keeping those values for every other user and for every other beer. Multiply that by what became a database of 7000 users and 60000 beers and, well, you can guess. Let's just say that a lot of these sets were over 1 MB each.</p>
+
+<p>I thought I was already truncating the ZSETs filled with similarity values by using a k-Nearest-Neighbor setting that I had introduced to Recommendable. That setting uses some specified number of similar users when generating recommendations as opposed to every user. Enabling that setting reduced the size of each similarity set from around 7000 values to 200 (100 similar users and 100 dissimilar users).</p>
+
+<p>Additionally, I implemented a setting to specify how many recommendations should be kept at any one time for each user. I only ever show 10 recommendations, so maintaining those probabilities for every single beer was ridiculous. I reduced that to 100 as well so people can immediately get more recommendations if they rate their current ones.</p>
+
+<p>After truncating all of the sets to their specified lengths, I watched in awe as the memory Redis had been consuming dropped from 1.5 GB to 50 MB. I don't think I'll be having memory usage issues with Redis for a long time.</p>
+
+<p>If you're a <a href="https://github.com/davidcelis/recommendable">Recommendable</a> user, I highly suggest you make use of the <code>nearest_neighbors</code>, <code>furthest_neighbors</code>, and <code>recommendations_to_store</code> settings.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Stop Validating Email Addresses With Your Complex Regex]]></title>
@@ -544,109 +583,6 @@ self.similarity_with(user) == user.similarity_with(self)</p>
 <h2>The Conclusioning</h2>
 
 <p>Clearly, the Jaccardian similarity coefficient is a very intuitive way to compare people when the rating system is binary. The other algorithms I mentioned are pretty cool too, but Likes/Dislikes and set math were just made for each other. They're like peanut butter and jelly. Bananas and Nutella. Charlie Sheen and cocaine. It's a beautiful marriage that I hope will last forever, even if I wasn't invited to the wedding.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Recommendable]]></title>
-    <link href="http://davidcelis.github.io/blog/2012/01/28/recommendable/"/>
-    <updated>2012-01-28T17:39:00-08:00</updated>
-    <id>http://davidcelis.github.io/blog/2012/01/28/recommendable</id>
-    <content type="html"><![CDATA[<p>A small side-project that I've had conceptualized for several months has
-finally come to fruition! I'm speaking of Recommenable, a Rails Engine that I
-have been hard at work on for the past couple of days. Some of you may be
-familiar with a website I run called <a href="http://goodbre.ws/">Goodbre.ws</a>. Goodbre.ws is a
-recommendation engine for beer that operates using Likes and Dislikes rather
-than the more traditional ★★★★★ rating system. If you're curious as to why I
-chose likes and dislikes, I'm planning a post soon that goes more into depth
-on this. Since I wrote Goodbre.ws, I've wanted to strip the logic for the
-recommendation engine itself out and make it available as an
-easily-includeable plugin for others. Late last night, I did just that, and the
-first working version is available for all to use. So, I would like to present
-you with...</p>
-
-<h2>Recommendable</h2>
-
-<p>Recommendable is an engine that, when installed, will insert a
-recommendation engine into your existing Ruby on Rails application. This
-will give a specified User class the immediate ability to being liking and
-disliking other Models in your application. Once your users have liked or
-disliked even a single thing, they'll start to receive personalized
-recommendations!</p>
-
-<!--more-->
-
-
-<h2>Installation</h2>
-
-<p><em>Note: Recommendable relies on Redis to run. The rest of this post assumes
-that it's installed. It's easily installed on Mac OS X using homebrew</em> (<code>brew
-install redis</code>).<em> Linux users can use</em> <code>apt-get</code> <em>or build from source.</em></p>
-
-<p>To install Recommendable, simply add the following to your Rails application's
-<code>Gemfile</code>:</p>
-
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Gemfile </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s2">&quot;recommendable&quot;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p>Then...</p>
-
-<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>bundle install
-</span><span class='line'><span class="nv">$ </span>rails generate recommendable:install
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p>This will do several things:</p>
-
-<ol>
-<li>Create Recommendable's initializer file (located at
-<code>config/initializers/recommendable.rb</code>)</li>
-<li>Copy migrations for Recommendable's Like, Dislike and Ignore models</li>
-<li>Run those migrations for you</li>
-</ol>
-
-
-<p>After running the installation generator, you should check the initializer if
-you need to do configuration for Redis.</p>
-
-<p>Finally, Recommendable uses Resque to establish a queue that your users will
-be placed in after liking or disliking an object. This is to prevent other
-requests to your webserver from taking too long. Assuming your Redis server is
-running, run the following command as many times as you wish:</p>
-
-<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ QUEUE</span><span class="o">=</span>recommendable rake environment resque:work
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p>Each time this command will run, a Resque worker will fire up and be ready for
-action. Of course, each worker will use RAM separately, so take note of how
-many are safe to use on your production server! This is a standard rake task
-included in Resque so, for more options you can pass to it, check
-<a href="http://github.com/defunkt/resque">defunkt/resque</a></p>
-
-<h2>Usage</h2>
-
-<p>In your Rails model that represents your application's user:</p>
-
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>app/models/user.rb </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
-</span><span class='line'>  <span class="n">recommends</span> <span class="ss">:movies</span><span class="p">,</span> <span class="ss">:shows</span><span class="p">,</span> <span class="ss">:other_things</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sr">&lt;p&gt;  # ...</span>
-</span><span class='line'><span class="sr">end</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p>And that's it! Your User instances are ready to like, dislike, and get recommendations! For more information on how to use Recommendable once you've
-installed it and set up your user model, head over to
-<a href="http://github.com/davidcelis/recommendable">davidcelis/recommendable</a> and check out the README.</p>
 ]]></content>
   </entry>
   
