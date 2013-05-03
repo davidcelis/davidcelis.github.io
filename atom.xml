@@ -4,7 +4,7 @@
   <title><![CDATA[davidcel.is]]></title>
   <link href="http://davidcelis.github.io/atom.xml" rel="self"/>
   <link href="http://davidcelis.github.io/"/>
-  <updated>2013-05-02T18:10:45-07:00</updated>
+  <updated>2013-05-02T19:37:30-07:00</updated>
   <id>http://davidcelis.github.io/</id>
   <author>
     <name><![CDATA[David Celis]]></name>
@@ -191,8 +191,6 @@
 <p>And now your VPS should be set up and ready to run Discourse! That means it&#8217;s time to&#8230;</p>
 
 <h2>Set up Discourse</h2>
-
-<p><em>WARNING: Discourse currently, by default, will run <code>FLUSHALL</code> in Redis on every boot of the Rails development environment. This includes any rake tasks. If you don&#8217;t want this to happen, run every following <code>rake</code> or <code>rails</code> command with a <code>DO_NOT_FLUSH_REDIS=true</code> environment variable or edit <code>config/initializers/01-redis.rb</code>.</em></p>
 
 <p>Because you&#8217;ll need to configure it yourself, Discourse is a prime candidate for <a href="https://github.com/discourse/discourse/fork">forking</a>. Clone your fork locally:</p>
 
