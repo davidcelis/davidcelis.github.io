@@ -185,8 +185,8 @@
 </span><span class='line'>git clone git://github.com/sstephenson/rbenv.git ~/.rbenv
 </span><span class='line'>
 </span><span class='line'><span class="c"># Setup rbenv initialization</span>
-</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;export PATH=&quot;$HOME/.rbenv/bin:$PATH&quot;&#39;</span> &gt;&gt; ~/.profile
-</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;eval &quot;$(rbenv init -)&quot;&#39;</span> &gt;&gt; ~/.profile
+</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;export PATH=&quot;$HOME/.rbenv/bin:$PATH&quot;&#39;</span> &gt;&gt; ~/.bash_profile
+</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;eval &quot;$(rbenv init -)&quot;&#39;</span> &gt;&gt; ~/.bash_profile
 </span><span class='line'>
 </span><span class='line'><span class="c"># Restart your shell to use rbenv</span>
 </span><span class='line'><span class="nb">exec</span> <span class="nv">$SHELL</span> -l
@@ -198,6 +198,8 @@
 </span><span class='line'>rbenv install 2.0.0-p0; rbenv global 2.0.0-p0
 </span></code></pre></td></tr></table></div></figure>
 
+
+<p><em>NOTE: the installation guide for <code>rbenv</code> mentions using <code>~/.profile</code> instead of <code>~/.bash_profile</code>, but I found the latter to work for me. You can try either if you have issues.</em></p>
 
 <p>Finally, you&#8217;ll need bundler.</p>
 

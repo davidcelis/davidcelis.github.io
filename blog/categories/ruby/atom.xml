@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ruby | davidcel.is]]></title>
   <link href="http://davidcelis.github.io/blog/categories/ruby/atom.xml" rel="self"/>
   <link href="http://davidcelis.github.io/"/>
-  <updated>2013-05-10T07:10:59-07:00</updated>
+  <updated>2013-05-10T09:55:46-07:00</updated>
   <id>http://davidcelis.github.io/</id>
   <author>
     <name><![CDATA[David Celis]]></name>
@@ -131,8 +131,8 @@
 </span><span class='line'>
 </span><span class='line'>&lt;h1&gt;Setup rbenv initialization&lt;/h1&gt;
 </span><span class='line'>
-</span><span class='line'>&lt;p&gt;echo <span class="s1">&#39;export PATH=&quot;$HOME/.rbenv/bin:$PATH&quot;&#39;</span> &gt;&gt; ~/.profile
-</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;eval &quot;$(rbenv init -)&quot;&#39;</span> &gt;&gt; ~/.profile&lt;/p&gt;
+</span><span class='line'>&lt;p&gt;echo <span class="s1">&#39;export PATH=&quot;$HOME/.rbenv/bin:$PATH&quot;&#39;</span> &gt;&gt; ~/.bash_profile
+</span><span class='line'><span class="nb">echo</span> <span class="s1">&#39;eval &quot;$(rbenv init -)&quot;&#39;</span> &gt;&gt; ~/.bash_profile&lt;/p&gt;
 </span><span class='line'>
 </span><span class='line'>&lt;h1&gt;Restart your shell to use rbenv&lt;/h1&gt;
 </span><span class='line'>
@@ -146,6 +146,8 @@
 </span><span class='line'>
 </span><span class='line'>&lt;p&gt;rbenv install 2.0.0-p0; rbenv global 2.0.0-p0
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><em>NOTE: the installation guide for <code>rbenv</code> mentions using <code>~/.profile</code> instead of <code>~/.bash_profile</code>, but I found the latter to work for me. You can try either if you have issues.</em></p>
 
 <p>Finally, you'll need bundler.</p>
 
