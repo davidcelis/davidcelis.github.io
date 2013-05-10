@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ruby | davidcel.is]]></title>
   <link href="http://davidcelis.github.io/blog/categories/ruby/atom.xml" rel="self"/>
   <link href="http://davidcelis.github.io/"/>
-  <updated>2013-05-03T16:49:03-07:00</updated>
+  <updated>2013-05-10T07:10:59-07:00</updated>
   <id>http://davidcelis.github.io/</id>
   <author>
     <name><![CDATA[David Celis]]></name>
@@ -211,13 +211,17 @@
 
 <h2>Set up Discourse</h2>
 
-<p>Because you'll need to configure it yourself, Discourse is a prime candidate for <a href="https://github.com/discourse/discourse/fork">forking</a>. Clone your fork locally:</p>
+<p>Because you'll need to configure it yourself, Discourse is a prime candidate for <a href="https://github.com/discourse/discourse/fork">forking</a>. If you don't have Ruby installed on your own computer, yet, I recommend installing rbenv locally. The same steps above will work (or follow rbenv's <a href="https://github.com/sstephenson/rbenv">installation guide</a>), so make sure you have Ruby 2.0.0-p0 installed.</p>
+
+<p>Then, clone your fork locally (on your own computer).</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
+<span class='line-number'>4</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone git@github.com:&lt;your_github_username&gt;/discourse.git
 </span><span class='line'><span class="nb">cd </span>discourse
+</span><span class='line'>gem install bundler
 </span><span class='line'>bundle install
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
