@@ -4,7 +4,7 @@
   <title><![CDATA[davidcel.is]]></title>
   <link href="http://davidcelis.github.io/atom.xml" rel="self"/>
   <link href="http://davidcelis.github.io/"/>
-  <updated>2013-05-10T09:55:46-07:00</updated>
+  <updated>2013-05-13T16:14:34-07:00</updated>
   <id>http://davidcelis.github.io/</id>
   <author>
     <name><![CDATA[David Celis]]></name>
@@ -223,7 +223,7 @@
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>cp config/database.yml.sample config/database.yml
-</span><span class='line'>cp config/nginx.conf.sample config/nginx.conf
+</span><span class='line'>cp config/nginx.sample.conf config/nginx.conf
 </span><span class='line'>cp config/redis.yml.sample config/redis.yml
 </span><span class='line'>cp config/environments/production.sample.rb config/environments/production.rb
 </span></code></pre></td></tr></table></div></figure>
@@ -374,6 +374,7 @@
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
+<span class='line-number'>16</span>
 </pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="nn">---</span>
 </span><span class='line'><span class="l-Scalar-Plain">chdir</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/home/goodbrews/discourse/current</span>
 </span><span class='line'><span class="l-Scalar-Plain">environment</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">production</span>
@@ -389,6 +390,7 @@
 </span><span class='line'><span class="l-Scalar-Plain">wait</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">30</span>
 </span><span class='line'><span class="l-Scalar-Plain">servers</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">4</span>
 </span><span class='line'><span class="l-Scalar-Plain">daemonize</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true</span>
+</span><span class='line'><span class="l-Scalar-Plain">onebyone</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -396,6 +398,8 @@
 
 <br/>
 
+
+<p>Make sure you add the <code>onebyone: true</code> key. This is the secret sauce that will make your Thin servers restart&#8230; You guessed it&#8230; One by one. Zero downtime!</p>
 
 <h3>Create a secret token</h3>
 
