@@ -4,7 +4,7 @@
   <title><![CDATA[davidcel.is]]></title>
   <link href="http://davidcelis.github.io/atom.xml" rel="self"/>
   <link href="http://davidcelis.github.io/"/>
-  <updated>2013-05-19T23:08:10-07:00</updated>
+  <updated>2013-05-24T08:28:07-07:00</updated>
   <id>http://davidcelis.github.io/</id>
   <author>
     <name><![CDATA[David Celis]]></name>
@@ -86,7 +86,7 @@
 <br />
 
 
-<h3>Install Ruby 2.0.0-p0 and bundler</h3>
+<h3>Install Ruby 2.0.0-p195 and bundler</h3>
 
 <p>SSH into your VPS as your deployment user and install the necessary dependencies to build Ruby on Ubuntu:</p>
 
@@ -131,8 +131,8 @@
 </span><span class='line'><span class="c"># Install ruby-build</span>
 </span><span class='line'>git clone https://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
 </span><span class='line'>
-</span><span class='line'><span class="c"># Install Ruby 2.0.0-p0 and set it as your user&#39;s default</span>
-</span><span class='line'>rbenv install 2.0.0-p0; rbenv global 2.0.0-p0
+</span><span class='line'><span class="c"># Install Ruby 2.0.0-p195 and set it as your user&#39;s default</span>
+</span><span class='line'>rbenv install 2.0.0-p195; rbenv global 2.0.0-p195
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -194,7 +194,7 @@
 
 <h2>Set up Discourse</h2>
 
-<p>Because you&#8217;ll need to configure it yourself, Discourse is a prime candidate for <a href="https://github.com/discourse/discourse/fork">forking</a>. If you don&#8217;t have Ruby installed on your own computer, yet, I recommend installing rbenv locally. The same steps above will work (or follow rbenv&#8217;s <a href="https://github.com/sstephenson/rbenv">installation guide</a>), so make sure you have Ruby 2.0.0-p0 installed.</p>
+<p>Because you&#8217;ll need to configure it yourself, Discourse is a prime candidate for <a href="https://github.com/discourse/discourse/fork">forking</a>. If you don&#8217;t have Ruby installed on your own computer, yet, I recommend installing rbenv locally. The same steps above will work (or follow rbenv&#8217;s <a href="https://github.com/sstephenson/rbenv">installation guide</a>), so make sure you have Ruby 2.0.0-p195 installed.</p>
 
 <p>Then, clone your fork locally (on your own computer).</p>
 
@@ -547,11 +547,6 @@
 <span class='line-number'>104</span>
 <span class='line-number'>105</span>
 <span class='line-number'>106</span>
-<span class='line-number'>107</span>
-<span class='line-number'>108</span>
-<span class='line-number'>109</span>
-<span class='line-number'>110</span>
-<span class='line-number'>111</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># Require the necessary Capistrano recipes</span>
 </span><span class='line'><span class="nb">require</span> <span class="s1">&#39;capistrano-rbenv&#39;</span>
 </span><span class='line'><span class="nb">require</span> <span class="s1">&#39;bundler/capistrano&#39;</span>
@@ -572,7 +567,7 @@
 </span><span class='line'><span class="n">set</span> <span class="ss">:user</span><span class="p">,</span> <span class="s1">&#39;goodbrews&#39;</span>
 </span><span class='line'><span class="n">set</span> <span class="ss">:use_sudo</span><span class="p">,</span> <span class="kp">false</span>
 </span><span class='line'><span class="n">set</span> <span class="ss">:rails_env</span><span class="p">,</span> <span class="ss">:production</span>
-</span><span class='line'><span class="n">set</span> <span class="ss">:rbenv_ruby_version</span><span class="p">,</span> <span class="s1">&#39;2.0.0-p0&#39;</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:rbenv_ruby_version</span><span class="p">,</span> <span class="s1">&#39;2.0.0-p195&#39;</span>
 </span><span class='line'>
 </span><span class='line'><span class="n">role</span> <span class="ss">:app</span><span class="p">,</span> <span class="s1">&#39;forums.goodbre.ws&#39;</span><span class="p">,</span> <span class="ss">primary</span><span class="p">:</span> <span class="kp">true</span>
 </span><span class='line'><span class="n">role</span> <span class="ss">:db</span><span class="p">,</span>  <span class="s1">&#39;forums.goodbre.ws&#39;</span><span class="p">,</span> <span class="ss">primary</span><span class="p">:</span> <span class="kp">true</span>
@@ -581,11 +576,6 @@
 </span><span class='line'><span class="c1"># Application Settings</span>
 </span><span class='line'><span class="n">set</span> <span class="ss">:application</span><span class="p">,</span> <span class="s1">&#39;discourse&#39;</span>
 </span><span class='line'><span class="n">set</span> <span class="ss">:deploy_to</span><span class="p">,</span> <span class="s2">&quot;/home/</span><span class="si">#{</span><span class="n">user</span><span class="si">}</span><span class="s2">/</span><span class="si">#{</span><span class="n">application</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># Keep your bundle up to date!</span>
-</span><span class='line'><span class="n">after</span> <span class="s2">&quot;deploy:setup&quot;</span> <span class="k">do</span>
-</span><span class='line'>  <span class="n">run</span> <span class="s2">&quot;cd </span><span class="si">#{</span><span class="n">current_path</span><span class="si">}</span><span class="s2"> &amp;&amp; bundle install&quot;</span>
-</span><span class='line'><span class="k">end</span>
 </span><span class='line'>
 </span><span class='line'><span class="n">namespace</span> <span class="ss">:deploy</span> <span class="k">do</span>
 </span><span class='line'>  <span class="c1"># Tasks to start, stop and restart thin. This takes Discourse&#39;s</span>
