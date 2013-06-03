@@ -248,11 +248,6 @@ header > .cell > p {
   min-height: 64px;
 }
 
-/*.hackernews-info {
-  position: absolute;
-  margin-right: 100px;
-}*/
-
 section.hacker-news {
   text-align: center;
 }
@@ -271,7 +266,9 @@ figure.code {
   overflow-x: auto;
 }
 
-code {
+p > code {
+  background-color: #fff;
+  font-size: 0.9em;
   padding: 0 5px;
 }
 
