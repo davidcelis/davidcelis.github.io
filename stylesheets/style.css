@@ -269,7 +269,7 @@ code {
 
 pre {
   font-size: 13px;
-  overflow: scroll;
+  overflow: auto;
   padding: 15px;
   white-space: pre;
 }
