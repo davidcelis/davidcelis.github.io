@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en"> <!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>{{ site.title }}{% if page.title != null %}&nbsp;&mdash; {{ page.title }}{% endif %}</title>
+    <meta name="description" content="David Celis' homepage and blog">
+    <meta name="author" content="David Celis">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/stylesheets/normalize-2.1.0.min.css">
+    <link rel="stylesheet" href="/stylesheets/syntax.css">
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/zepto/1.0/zepto.min.js"></script>
+    <script src="/javascripts/davidcel.is.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <header class="clearfix" itemprop="person" itemscope>
+        <h1 class="page-title">
+          <a class="name" href="/" itemprop="name">David Celis</a>
+          <a href="/" class="author-photo">
+            <img src="https://secure.gravatar.com/avatar/9b0144a16ba125a94460c5d45f07efb9?size=300" width="150" height="150" alt="avatar">
+          </a>
+        </h1>
+        <section class="cell">
+          {% include bio.html %}
+        </section>
+      </header>
+      <div id="main" role="main">
+        {{ content }}
+      </div>
+      <footer>
+        <p id="license">
+          All content &copy; David Celis 2013 under the MIT License.
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

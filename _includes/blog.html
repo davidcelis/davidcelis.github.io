@@ -1,0 +1,21 @@
+{% assign categories = 'programming,music' | split: ',' %}
+
+<h2>Blog</h2>
+
+{% for category in categories %}
+  <h3>{{ category | capitalize }}</h3>
+  <ul class="post-list">
+    {% for post in site.posts %}
+      {% if post.categories contains category %}
+        <li>
+          <time datetime="{{ post.date | date: "%Y-%m-%d" }}" class="post-date">{{ post.date | date: "%b %d, %Y" }} »</time>
+          <a href="{{ post.url }}">{{ post.title }}</a>
+
+          {% if category == 'music' %}
+            <span class="artist">({{ post.artist }})</span>
+          {% endif %}
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+{% endfor %}

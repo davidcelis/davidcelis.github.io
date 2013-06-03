@@ -1,0 +1,4 @@
+title: davidcel.is
+pygments: true
+
+permalink: /blog/:year/:month/:day/:title

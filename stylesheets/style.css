@@ -1,0 +1,336 @@
+/* Fonts. */
+
+@font-face {
+  font-family: 'Portland LDO';
+  src: url('fonts/Portland-LDO.woff') format('woff'),
+  url('fonts/Portland-LDO.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Portland LDO';
+  src: url('fonts/Portland-LDO-Bold.woff') format('woff'),
+  url('fonts/Portland-LDO-Bold.ttf') format('truetype');
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: 'Portland LDO';
+  src: url('fonts/Portland-LDO-Italic.woff') format('woff'),
+  url('fonts/Portland-LDO-Italic.ttf') format('truetype');
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Portland LDO';
+  src: url('fonts/Portland-LDO-Bold-Italic.woff') format('woff'),
+  url('fonts/Portland-LDO-Bold-Italic.ttf') format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
+
+/* Default styles. */
+
+body {
+  font-family: 'Portland LDO', Palatino, 'Palatino Linotype', Helvetica, serif;
+  margin-top: 1em;
+  color: #333;
+  background-color: #d9d9d9;
+}
+
+#container {
+  width: 1000px;
+  margin: 0 auto;
+}
+
+blockquote {
+  border-left: 4px solid #ddd;
+  padding: 0 15px;
+  color: #777;
+  margin: 0;
+}
+
+footer {
+  text-align: center;
+  }
+
+footer p {
+  font-family: "Trebuchet MS", sans-serif;
+  font-size: 13px;
+  font-weight: 100;
+  color: #333;
+}
+
+h1, h2 {
+  line-height: normal;
+}
+
+h1 a, h1 a:visited, h2 a, h2 a:visited {
+  color: inherit;
+}
+
+h1 {
+  font-size: 3em;
+}
+
+h2 {
+  font-size: 2.8em;
+  margin: 0 0 30px 0;
+}
+
+h1 small {
+  font-size: 0.7em;
+}
+
+.cell h2 {
+  color: #f14a29;
+  margin: 30px 0 0 0;
+}
+
+.cell > h2:first-child {
+  margin: 0 0 0 0;
+}
+
+/* Tag styles. */
+
+a, a:visited {
+  text-decoration: none;
+  color: #0092bf;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+abbr[title] {
+  cursor: pointer;
+}
+
+/* Header styles. */
+
+header > .cell {
+  width: 520px;
+  min-height: 126px;
+  margin-right: 0;
+  padding-right: 50px;
+  position: relative;
+}
+
+header > .cell > p {
+  margin: 0;
+}
+
+.header-links {
+  position: absolute;
+  right: 10px;
+  top: 5px;
+  width: 40px;
+}
+
+.header-link {
+  float: left;
+  padding-top: 5px;
+  padding-left: 5px;
+}
+
+.header-link-image {
+  width: 32px;
+}
+
+.author-photo {
+  height: 150px;
+  float: left;
+  margin-right: 10px;
+  position: absolute;
+  bottom: 20px;
+  right: 0;
+}
+
+.author-photo > img {
+  border-radius: 100px;
+}
+
+#author-bio {
+  padding-right: 15px;
+}
+
+.page-title {
+  clear: both;
+  margin: 0 10px 10px 0;
+  padding: 30px;
+  font-size: 45px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #fff;
+  background: #0092bf;
+  position: relative;
+}
+
+.page-title > a.name {
+  padding-top: 20px;
+}
+
+/* Post and page styles. */
+
+.post-content h2 {
+  font-size: 1.3em;
+}
+
+.page-title, header > .cell {
+  display: inline-block;
+  float: left;
+  height: 126px;
+}
+
+.page-title .name {
+  display: block;
+  width: 180px;
+}
+
+#container > header, #container > #main {
+  margin-right: -10px;
+}
+
+.page-title {
+  width: 330px;
+}
+
+.cell {
+  font-size: 18px;
+  float: left;
+  width: 940px;
+  margin: 0 10px 10px 0;
+  padding: 30px;
+  line-height: 26px;
+  background-color: #f7f7f7;
+}
+
+.half-cell {
+  width: 435px;
+  height: 665px;
+}
+
+.cell h1 {
+  color: #0092bf;
+}
+
+.projects {
+  padding-left: 20px;
+}
+
+.new-project-type {
+  margin-top: 18px;
+}
+
+.post-list, .post-list > li {
+  padding-left: 0;
+  list-style: none;
+}
+
+.artist {
+  color: #888;
+  font-size: 0.8em;
+}
+
+.post-date {
+  color: #888;
+}
+
+.post-suggest-improvement {
+  float: right;
+}
+
+.post-content img {
+  max-width: 930px;
+}
+
+.page-links {
+  min-height: 64px;
+}
+
+.hackernews-info {
+  position: absolute;
+  margin-right: 100px;
+}
+
+.video-container {
+  text-align: center;
+}
+
+/* Code-related styles. */
+
+figure.code {
+  overflow-x: auto;
+}
+
+code {
+  padding: 0 5px;
+}
+
+pre {
+  font-size: 13px;
+  overflow: scroll;
+  padding: 15px;
+  white-space: pre;
+}
+
+pre > code {
+  padding: 0;
+}
+
+table.highlighttable, .highlight {
+  line-height: 1em;
+}
+
+.clearfix:before, .clearfix:after { content: " "; display: table; }
+.clearfix:after { clear: both; }
+
+/************************************************************
+ Media Queries for Responsive Design. These override the
+ primary ('mobile first') styles. Modify as content requires.
+ ************************************************************/
+
+@media only screen and (max-width: 1000px) {
+  #container {
+    width: auto;
+    margin: 0 10px;
+  }
+
+  #container > header, #container > #main {
+    margin-right: 0;
+  }
+
+  h2 {
+    font-size: 1.75em;
+  }
+
+  .page-title, header > .cell {
+    width: auto;
+    height: auto;
+    display: block;
+    float: none;
+  }
+
+  .page-title {
+    margin: 0 0 10px 0;
+  }
+
+  .header-links {
+    float: none;
+    padding-bottom: 10px;
+  }
+
+  .cell, .cell.nopadding {
+    float: none;
+    width: auto;
+    height: auto;
+    margin-right: 0;
+  }
+
+  .post-content img {
+    max-width: 100%;
+  }
+
+  .talk-wrap {
+    max-width: 650px;
+  }
+}

@@ -1,0 +1,23 @@
+---
+layout: default
+---
+
+{% if page.external_link != null %}
+  You can view the post at <a href="{{ page.external_link }}">{{ page.external_link }}</a>.
+{% else %}
+  <section class="cell post">
+    <h2>{{ page.title }}</h2>
+    <section class="post-date">
+      <time datetime="{{ page.date | date: "%Y-%m-%d" }}">{{ page.date | date: "%d %b %y" }}</time>
+      <em><a class="post-suggest-improvement" href="https://github.com/davidcelis/davidcelis.github.io/edit/master/{{ page.path }}">Suggest an improvement to this post</a></em>
+    </section>
+    <section class="post-content">{{ content }}</section>
+    <div class="page-comments"></div>
+  </section>
+{% endif %}
+
+{% if page.hackernews != null %}
+  <section class="cell page-links clearfix">
+    <p class="hackernews-info">You can discuss this post at <a href="{{ page.hackernews }}">Hacker News</a>.</p>
+  </section>
+{% endif %}
