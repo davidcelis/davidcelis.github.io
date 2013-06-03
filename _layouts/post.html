@@ -17,7 +17,9 @@ layout: default
 {% endif %}
 
 {% if page.hackernews != null %}
-  <section class="cell page-links clearfix">
-    <p class="hackernews-info">You can discuss this post at <a href="{{ page.hackernews }}">Hacker News</a>.</p>
+  <section class="cell page-links clearfix hacker-news">
+    <p class="hackernews-info">
+      You can discuss this post on <a href="{{ page.hackernews }}">Hacker News</a>.
+    </p>
   </section>
 {% endif %}

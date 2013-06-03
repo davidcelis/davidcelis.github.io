@@ -248,9 +248,17 @@ header > .cell > p {
   min-height: 64px;
 }
 
-.hackernews-info {
+/*.hackernews-info {
   position: absolute;
   margin-right: 100px;
+}*/
+
+section.hacker-news {
+  text-align: center;
+}
+
+section.hacker-news > p:first-letter {
+  color: #f14a29;
 }
 
 .video-container {
