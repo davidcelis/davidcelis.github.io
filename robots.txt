@@ -1,4 +1,0 @@
-User-agent: *
-Disallow: 
-
-Sitemap: http://davidcelis.github.io/sitemap.xml 
