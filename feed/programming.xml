@@ -1,0 +1,21 @@
+---
+layout: none
+---
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title xml:lang="en">{{ site.name }} — Programming</title>
+    <description xml:lang="en">Wherein I write about programming.</description>
+    <link href="{{ site.url }}" rel="alternate" type="text/html" />
+    <atom:link href="{{ site.url }}/feed/" rel="self" type="application/rss+xml" />
+    {% for post in site.categories.programming limit:10 %}
+      <item>
+        <title xml:lang="en">{{ post.title }}</title>
+        <description xml:lang="en">{{ post.content | xml_escape }}</description>
+        <pubDate>{{ post.date | date: "%a, %d %b %Y %H:%M:%S %z" }}</pubDate>
+        <link href="{{ site.url }}{{ post.url }}" rel="alternate" type="text/html" />
+        <guid isPermaLink="true">{{ site.url }}{{ post.url }}</guid>
+      </item>
+    {% endfor %}
+  </channel>
+</rss>

@@ -1,4 +1,7 @@
 title: davidcel.is
-pygments: true
+name: davidcel.is
+url: http://davidcel.is
+description: Wherein I write about programming and music.
 
+pygments: true
 permalink: /blog/:year/:month/:day/:title
