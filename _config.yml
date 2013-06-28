@@ -5,3 +5,5 @@ description: Wherein I write about programming and music.
 
 pygments: true
 permalink: /blog/:year/:month/:day/:title
+
+exclude: ["vendor"]
