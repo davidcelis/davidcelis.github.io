@@ -13,7 +13,7 @@ layout: none
         <title xml:lang="en">{{ post.title }}</title>
         <description xml:lang="en">{{ post.content | xml_escape }}</description>
         <pubDate>{{ post.date | date: "%a, %d %b %Y %H:%M:%S %z" }}</pubDate>
-        <link href="{{ site.url }}{{ post.url }}" rel="alternate" type="text/html" />
+        <link href="{% if post.external %}{{ post.external }}{% else %}{{ site.url }}{{ post.url }}{% endif %}" rel="alternate" type="text/html" />
         <guid isPermaLink="true">{{ site.url }}{{ post.url }}</guid>
       </item>
     {% endfor %}
