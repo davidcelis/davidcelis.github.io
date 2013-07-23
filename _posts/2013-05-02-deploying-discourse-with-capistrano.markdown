@@ -19,9 +19,10 @@ on thin with zero-downtime deployments.
 
 ## Set up your VPS
 
-_If you're a Chef wiz and already have some recipes for Discourse, you can
-skip ahead to the section on setting up Discourse. Chef is still on my
-learning TODO list, so I provisioned a server from scratch._
+_If you're a Chef wiz and already have some recipes to provision servers for
+running Rails apps, you can skip ahead to the section on setting up Discourse.
+Chef is still on my learning TODO list, so I provisioned a server from
+scratch._
 
 I started with a [Digital Ocean][digital-ocean] droplet running the latest
 release of Ubuntu 13.04, but presumably any VPS running a recent release (12
