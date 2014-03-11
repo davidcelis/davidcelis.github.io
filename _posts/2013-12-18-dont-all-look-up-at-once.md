@@ -2,7 +2,7 @@
 layout: post
 title: "Don't All Look Up At Once"
 date: 2013-12-18 14:23
-categories: [music, transcriptions, piano]
+categories: [music]
 artist: "Ezra Bell"
 ---
 
