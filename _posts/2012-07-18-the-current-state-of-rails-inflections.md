@@ -94,8 +94,8 @@ There are only a few basic rules in English for pluralization. Because we're spe
  * Most words that end with an 'o' preceded by a consonant pluralize as 'oes'
    (potato => potatoes, avocado => avocadoes).
 
-* Most words that end with a 'y' preceded by a consonant pluralize as 'ies'
-  (lady => ladies, berry => berries)
+ * Most words that end with a 'y' preceded by a consonant pluralize as 'ies'
+   (lady => ladies, berry => berries)
 
 Aside from these rules, however, all other regular plurals are achieved by adding an 's'.
 
