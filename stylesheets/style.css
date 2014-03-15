@@ -2,28 +2,28 @@
 
 @font-face {
   font-family: 'Portland LDO';
-  src: url('fonts/Portland-LDO.woff') format('woff'),
-  url('fonts/Portland-LDO.ttf') format('truetype');
+  src: url('../fonts/Portland-LDO.woff') format('woff'),
+  url('../fonts/Portland-LDO.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Portland LDO';
-  src: url('fonts/Portland-LDO-Bold.woff') format('woff'),
-  url('fonts/Portland-LDO-Bold.ttf') format('truetype');
+  src: url('../fonts/Portland-LDO-Bold.woff') format('woff'),
+  url('../fonts/Portland-LDO-Bold.ttf') format('truetype');
   font-weight: bold;
 }
 
 @font-face {
   font-family: 'Portland LDO';
-  src: url('fonts/Portland-LDO-Italic.woff') format('woff'),
-  url('fonts/Portland-LDO-Italic.ttf') format('truetype');
+  src: url('../fonts/Portland-LDO-Italic.woff') format('woff'),
+  url('../fonts/Portland-LDO-Italic.ttf') format('truetype');
   font-style: italic;
 }
 
 @font-face {
   font-family: 'Portland LDO';
-  src: url('fonts/Portland-LDO-Bold-Italic.woff') format('woff'),
-  url('fonts/Portland-LDO-Bold-Italic.ttf') format('truetype');
+  src: url('../fonts/Portland-LDO-Bold-Italic.woff') format('woff'),
+  url('../fonts/Portland-LDO-Bold-Italic.ttf') format('truetype');
   font-weight: bold;
   font-style: italic;
 }
@@ -51,7 +51,7 @@ blockquote {
 
 footer {
   text-align: center;
-  }
+}
 
 footer p {
   font-family: "Trebuchet MS", sans-serif;
@@ -119,21 +119,20 @@ header > .cell > p {
   margin: 0;
 }
 
-.header-links {
-  position: absolute;
-  right: 10px;
-  top: 5px;
-  width: 40px;
+.social-links {
+
 }
 
-.header-link {
+.social-icon {
+  color: #000000;
   float: left;
-  padding-top: 5px;
-  padding-left: 5px;
+  margin: 0px 0px 0px 30px;
+  float: right;
 }
 
-.header-link-image {
-  width: 32px;
+.social-icon:hover {
+  transition: color 0.2s ease;
+  color: #0092bf;
 }
 
 .author-photo {
