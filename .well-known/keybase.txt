@@ -1,0 +1,66 @@
+==================================================================
+https://keybase.io/davidcelis
+--------------------------------------------------------------------
+
+I hereby claim:
+
+  * I am an admin of http://davidcel.is
+  * I am davidcelis (https://keybase.io/davidcelis) on keybase.
+  * I have a public key with fingerprint 7932 F3A5 43C4 7961 B2FF  E77A 4A35 06D4 2B00 16D7
+
+To claim this, I am signing this object:
+
+{
+    "body": {
+        "key": {
+            "fingerprint": "7932f3a543c47961b2ffe77a4a3506d42b0016d7",
+            "host": "keybase.io",
+            "key_id": "4a3506d42b0016d7",
+            "uid": "4cf4dcba9d433b9f19a5ae74ba499500",
+            "username": "davidcelis"
+        },
+        "service": {
+            "hostname": "davidcel.is",
+            "protocol": "http:"
+        },
+        "type": "web_service_binding",
+        "version": 1
+    },
+    "ctime": 1396970707,
+    "expire_in": 157680000,
+    "prev": "211d15ad42b8e6afa81494a3d87aa30c6a8ec1b6b4653c7d18a058b8ff05e8d2",
+    "seqno": 20,
+    "tag": "signature"
+}
+
+with the aforementioned key, yielding the PGP signature:
+
+-----BEGIN PGP MESSAGE-----
+Version: Keybase OpenPGP v0.1.5
+Comment: https://keybase.io/crypto
+
+yMHsAnicbZFtSFRZGMdnfKXZTS1ki9wXuJaYDcO9c99HZCVCzE0cjMBImc6959zx
+4nTveOfOdQedXemDKLEtaAu7G5ns4gfdVEZWigoZzYSQMlwJKxBD+mANSJkbqKDn
+2vZl6ZwPh/N/fv//w8MztTfd4XIeKXr9pGeyl3HOJNeijtMn8v9pJSQdxghfK9GE
+dh9F1YLICBuqZhI+ghdpr0IDlqFlhhc5SvIqCuJ5wACaJTnIeCWSpDjIE26iUY/Y
+DhwjgQjyqDrW8CegQqx+go9+KMgKA2UJiJChaUlUKBGwAPGMBBhRZEnSBiPI0MAF
+hGkILBXKKKRGiLibwLqlylhv3W3+P8aDITcRNnRTl/UQLjSaZthn+8xY2AZbkBT4
+LyIgqRrEg2ODhYyIqmuEj8KkbKp2JkWLnMiT+LoJ9H1YNVBAtQmW5wQSH7sNsnCk
+l6IgxQJ7TgFxQAECxYh4dijwANCkzAEByZTESQzH0jIPKQGQrCAJikKySIBe3D+C
+mjWd8HlxqAmCODOiBjVgRg1ExCeT9RkOp8uRlZlm787h2pP3caPCTPb2KVhxtKz2
+VsCVlzVcuBy+fT25mjf7eUvJRnzh3IG63ofzOV+2cUPtU7WxabO8K6PAfbyr8mVZ
+9a/3Niv/vjndebj7378uJkNVVkNp2/65zi+ym/5IMzPq7ri3oqnZ81OPz65Zw43j
+J29U9C2Eguv+X75KPHjUfyxck/v8TWHOyv2BdstKDPRNMPOro7/99HsJm59ga1I/
+XD0zmvkKXfb3NFd0Lr79syh3pDhmQQ1sXgs8S/i7nX1bEwWfpX9bru/rGCq95HEM
+jlX5v55tG+9YCiwm3x86aKQmxq70zyytNPjWf55Lmd/A+rvyyLvi5frq7fjgd56n
+KW4j/ceu/Bdm4Q7U3BVu
+=7POl
+-----END PGP MESSAGE-----
+
+And finally, I am proving ownership of this host by posting or
+appending to this document.
+
+View my publicly-auditable identity here: https://keybase.io/davidcelis
+
+==================================================================
+
