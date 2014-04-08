@@ -9,5 +9,7 @@ gems:
   - jekyll-mentions
   - jemoji
 
+markdown: kramdown
+
 include: [".well-known"]
 exclude: ["vendor"]
