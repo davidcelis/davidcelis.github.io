@@ -53,6 +53,10 @@ footer {
   text-align: center;
 }
 
+.center {
+  text-align: center;
+}
+
 footer p {
   font-family: "Trebuchet MS", sans-serif;
   font-size: 13px;
