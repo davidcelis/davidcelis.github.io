@@ -14,7 +14,8 @@ I want to pair with all sorts of people. If you're a junior developer and/or you
 * I don't strictly subscribe to TDD, but I've found it to be a good pairing style/technique.
 * I mostly use Sublime Text, but I can sorta handle myself in Vim. If you're a Vim pro, most of our pairing session will probably be comprised of me asking, "What? How'd you do that? :hushed:"
 * I'm using resources found at the great [Pair Program With Me][pair-program-with-me] site.
-* I'm in Portland, OR but I'm open to pairing remotely.
+* I'm in Portland, OR but I'm open to pairing remotely. Portland is in PST or PDT depending on the time of year.
+* I tend to be available on evenings during the weekdays, and throughout the day on weekends. Keep this and the above in mind when trying to work out a schedule with me!
 * You click the button now!
 
 [pair-program-with-me]: http://www.pairprogramwith.me/
