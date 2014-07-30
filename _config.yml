@@ -2,7 +2,7 @@ title: davidcel.is
 name: davidcel.is
 url: http://davidcel.is
 description: Wherein I write about programming and music.
-pygments: true
+highlighter: pygments
 permalink: /blog/:year/:month/:day/:title
 
 gems:
