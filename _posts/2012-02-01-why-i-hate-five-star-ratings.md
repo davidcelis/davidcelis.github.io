@@ -21,8 +21,6 @@ One of my big gripes about the five-star scale is ambiguity behind the ratings t
     ★★★★ (Really liked it)
     ★★★★★ (Loved it)
 
-
-
 At the time of writing this post, Netflix no longer displays this text when submitting a rating. Instead, posting a rating to Netflix now closely resembles the act of doing so on Amazon: you are simply presented with five clickable stars and left alone with your fears and preconceptions. This is how it often is when submitting a star rating.
 
 However, even the explanatory text itself can end up coming off as subjective. What does it mean to "really" like a movie? Why are the intervals between the options unequal (i.e. no "Really disliked it" option)? The explanatory text can help if done correctly, but it can also simply add to the subjectivity of submitted ratings.
