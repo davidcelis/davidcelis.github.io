@@ -2,7 +2,15 @@
 layout: default
 ---
 
-<section class="cell post">
-  <h2>{{ page.title }}</h2>
-  <section class="post-content">{{ content }}</section>
-</section>
+<article id="main">
+  <header class="special container">
+    <span class="icon"><img class="author" src="/images/me.jpg" /></span>
+    <h2>{{ page.title }}</h2>
+
+    {% if page.subtitle %}<p>{{ page.subtitle }}</p>{% endif %}</p>
+  </header>
+
+  <section class="wrapper style3 container special">
+    {{ content }}
+  </section>
+</article>

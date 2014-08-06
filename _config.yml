@@ -1,15 +1,23 @@
+# Site settings
 title: davidcel.is
-name: davidcel.is
-url: http://davidcel.is
+email: me@davidcel.is
 description: Wherein I write about programming and music.
-highlighter: pygments
+url: http://davidcel.is
 permalink: /blog/:year/:month/:day/:title
+
+twitter_username: davidcelis
+github_username: davidcelis
+
+# Build settings
+markdown: kramdown
+highlighter: pygments
+
+sass:
+  sass_dir: css
 
 gems:
   - jekyll-mentions
   - jemoji
-
-markdown: kramdown
 
 include: [".well-known"]
 exclude: ["vendor"]

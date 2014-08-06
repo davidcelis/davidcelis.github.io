@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Stop Validating Email Addresses With Complicated Regular Expressions"
+title: "Stop Validating Email Addresses <br /> With Complicated Regular Expressions"
 date: 2012-09-06 10:33
 categories: [programming, ruby, rails]
 

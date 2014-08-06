@@ -15,15 +15,13 @@ The star rating scale is arguably the most classic of all, so it's not surprisin
 
 One of my big gripes about the five-star scale is ambiguity behind the ratings that you are allowed to give. What exactly distinguishes between three stars and four stars? What is enough to push your rating up to that next star? What is enough to pull it down? Because of a lack of clarity, star ratings can end up being very subjective. It is easy to end up with two people who give an item the same three-star rating but actually feel differently about it. Some websites attempt to handle this reasonably. Netflix, for instance, used to present some explanatory text for each star when hovering over them during a rating:
 
-★ (Hated it)
+    ★ (Hated it)
+    ★★ (Didn't like it)
+    ★★★ (Liked it)
+    ★★★★ (Really liked it)
+    ★★★★★ (Loved it)
 
-★★ (Didn't like it)
 
-★★★ (Liked it)
-
-★★★★ (Really liked it)
-
-★★★★★ (Loved it)
 
 At the time of writing this post, Netflix no longer displays this text when submitting a rating. Instead, posting a rating to Netflix now closely resembles the act of doing so on Amazon: you are simply presented with five clickable stars and left alone with your fears and preconceptions. This is how it often is when submitting a star rating.
 

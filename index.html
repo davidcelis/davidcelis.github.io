@@ -2,10 +2,26 @@
 layout: default
 ---
 
-<section class="cell half-cell main-page-cell">
-  {% include projects.html %}
-</section>
+<article id="main">
+  <header class="special container">
+    <span class="icon"><img class="author" src="/images/me.jpg" /></span>
+    <h2>Hi. I write the Internet.</h2>
 
-<section class="cell half-cell main-page-cell">
-  {% include blog.html %}
-</section>
+    <p>My name is David Celis. I'm a Rubyist working for
+    <a href="http://www.newrelic.com/" rel="nofollow" target="_blank">New Relic</a>
+    (where I enjoy writing APIs)<br />out in Portland, Ore. (where I enjoy drinking IPAs).</p>
+  </header>
+
+  <section class="wrapper style3 container special">
+    <div class="row">
+      <div class="6u">
+        {% include projects.html %}
+      </div>
+
+      <div class="6u">
+        {% include blog.html %}
+      </div>
+    </div>
+  </section>
+</article>
+
