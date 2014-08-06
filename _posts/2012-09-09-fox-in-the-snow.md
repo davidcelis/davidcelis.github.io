@@ -11,6 +11,6 @@ Well, friends, this is where it all began. This was my first foray into singing 
 
 This song is "The Fox in the Snow", off of Belle and Sebastian's album _If You're Feeling Sinister_. It was their second album, released back in 1996. So it's an "old" one, but a great one. Hope you guys enjoy it.
 
-<div class="video-container">
+<div class="video-container center">
   <iframe width="560" height="315" src="http://www.youtube.com/embed/nmuP188wpgk?rel=0" frameborder="0" allowfullscreen="true"></iframe>
 </div>

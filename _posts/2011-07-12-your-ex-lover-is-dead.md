@@ -17,7 +17,7 @@ This is a song I really wanted to learn to play on the piano and sing. Usually I
 
 So, without further ado, [this is my transcription][sheet music] for Owen Pallet's version of "Your Ex-Lover Is Dead" by Stars for piano and vocals. As far as I can tell, it's extremely accurate. Here's a video so you can hear how it sounds before you play it yourself.
 
-<div class="video-container">
+<div class="video-container center">
   <iframe width="560" height="315" src="http://www.youtube.com/embed/1A7fp6gI0b8?rel=0" frameborder="0" allowfullscreen="true"></iframe>
 </div>
 
