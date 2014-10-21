@@ -132,6 +132,7 @@ header {
   img.author {
     width: 100px;
     height: 100px;
+    border: 1px solid $color-footer-bg;
     border-radius: 150px;
     -webkit-border-radius: 150px;
     -moz-border-radius: 150px;
