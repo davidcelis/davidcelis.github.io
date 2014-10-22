@@ -543,7 +543,7 @@ input[type="reset"],
   }
 
   &.special {
-    background: $color-one-bg;
+    background: transparentize($color-one-bg, 0.5);
     border-color: $color-one-bg;
     color: $color-one-fg !important;
 
