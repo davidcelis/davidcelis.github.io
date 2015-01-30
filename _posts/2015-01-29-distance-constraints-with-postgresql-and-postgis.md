@@ -49,22 +49,22 @@ Now that we have our geography column, we can start adding some locations that w
 
 {% highlight postgresql %}
 --- A little island in Turtle Pond
-INSERT INTO foraging_spots (nuts, coordinates) VALUES (4, ST_GeographyFromText('POINT(40.779741 -73.968504)'));
+INSERT INTO foraging_spots (nuts, coordinates) VALUES (4, ST_GeographyFromText('POINT(-73.968504 40.779741)'));
 
 --- Around the Obelisk
-INSERT INTO foraging_spots (nuts, coordinates) VALUES (9, ST_GeographyFromText('POINT(40.779640 -73.965393)'));
+INSERT INTO foraging_spots (nuts, coordinates) VALUES (9, ST_GeographyFromText('POINT(-73.965393 40.779640)'));
 
 --- One of the softball fields in the Great Lawn
-INSERT INTO foraging_spots (nuts, coordinates) VALUES (17, ST_GeographyFromText('POINT(40.780602 -73.966256)'));
+INSERT INTO foraging_spots (nuts, coordinates) VALUES (17, ST_GeographyFromText('POINT(-73.966256 40.780602)'));
 
 --- In the Shakespeare Garden
-INSERT INTO foraging_spots (nuts, coordinates) VALUES (12, ST_GeographyFromText('POINT(40.779859 -73.969861)'));
+INSERT INTO foraging_spots (nuts, coordinates) VALUES (12, ST_GeographyFromText('POINT(-73.969861 40.779859)'));
 
 --- In "The Ramble", whatever that is!
-INSERT INTO foraging_spots (nuts, coordinates) VALUES (7, ST_GeographyFromText('POINT(40.776146 -73.969046)'));
+INSERT INTO foraging_spots (nuts, coordinates) VALUES (7, ST_GeographyFromText('POINT(-73.969046 40.776146)'));
 {% endhighlight %}
 
-Okay! Now we have five foraging spots in our new table. This uses the `ST_GeographyFromText` function given to us by PostGIS. This takes a string representation of a POINT and uses it to construct a native Geography that can then be stored in our table. So this ends up taking the form of `ST_GeographyFromText('SRID=4326;POINT(latitude longitude)'))`. In our examples, we left out the SRID declaration because an SRID of 4326 is assumed; we don't have to specify it.
+Okay! Now we have five foraging spots in our new table. This uses the `ST_GeographyFromText` function given to us by PostGIS. This takes a string representation of a POINT and uses it to construct a native Geography that can then be stored in our table. So this ends up taking the form of `ST_GeographyFromText('SRID=4326;POINT(longitude latitude)'))`. In our examples, we left out the SRID declaration because an SRID of 4326 is assumed; we don't have to specify it.
 
 Now, let's say you go out on another run. You remember that you found a good number of nuts out in the Great Lawn, so you venture there again. It's full of softball fields! You remember that you searched near one of them, but you don't remember which. You want your database to be able to tell you if you start searching near the same field as last time. Your first thought is probably to put a uniqueness constraint[^1] on your coordinates field:
 
@@ -76,7 +76,7 @@ Now, let's see what happens when we try to create a point with the same coordina
 
 {% highlight postgresql %}
 --- That same softball field in the Great Lawn
-INSERT INTO foraging_spots (coordinates) VALUES (ST_GeographyFromText('POINT(40.780602 -73.966256)'));
+INSERT INTO foraging_spots (coordinates) VALUES (ST_GeographyFromText('POINT(-73.966256 40.780602)'));
 --- ERROR:  duplicate key value violates unique constraint "coordinates_gix"
 --- DETAIL:  Key (coordinates)=(0101000020E61000009A982EC4EA63444015E46723D77D52C0) already exists.
 {% endhighlight %}
@@ -85,7 +85,7 @@ Our index works! ... If you input the exact same coordinates. However, you are q
 
 {% highlight postgresql %}
 --- That same softball field in the Great Lawn, but shifted eeever so slightly...
-INSERT INTO foraging_spots (coordinates) VALUES (ST_GeographyFromText('POINT(40.780612 -73.966246)'));
+INSERT INTO foraging_spots (coordinates) VALUES (ST_GeographyFromText('POINT(-73.966246 40.780612)'));
 --- INSERT 0 1
 {% endhighlight %}
 
@@ -124,7 +124,7 @@ DELETE FROM foraging_spots WHERE id IN (SELECT id FROM foraging_spots ORDER BY i
 --- DELETE 1
 
 --- Now, try to add it again
-INSERT INTO foraging_spots (coordinates) VALUES (ST_GeographyFromText('POINT(40.780612 -73.966246)'));
+INSERT INTO foraging_spots (coordinates) VALUES (ST_GeographyFromText('POINT(-73.966246 40.780612)'));
 --- ERROR:  You already search this spot! Go somewhere else!
 {% endhighlight %}
 
