@@ -45,6 +45,10 @@ a {
   &:hover {
     border-bottom-color: transparent;
   }
+
+  &.footnote {
+    margin-right: 3px;
+  }
 }
 
 strong, b {
