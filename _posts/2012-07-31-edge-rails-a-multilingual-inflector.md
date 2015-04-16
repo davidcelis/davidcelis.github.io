@@ -3,6 +3,8 @@ layout: post
 title: "Edge Rails 4.0: A Multilingual Inflector"
 date: 2012-07-31 09:50
 categories: [programming, ruby, rails, edge rails]
+redirect_from:
+  - /blog/2012/07/31/edge-rails-a-multilingual-inflector/
 ---
 
 Here's a sneak peak at an upcoming enhancement for `ActiveSupport::Inflector` in Rails 4.0. The Inflector is the part of Rails responsible for a good amount of the cool stuff you can do with Strings: pluralization, singularization, titleization, humanization, tableization... The list goes on. Rails uses these methods extensively to map between, say, Model names, Controller names, and the Model's table name.
@@ -11,40 +13,11 @@ Currently, the Inflector can handle only one set of rules at a time. Rails provi
 
 Rails will still only provide a list of inflections in English. However, it's now much easier to specify your own set of rules (or have them provided to you via a gem) for additional locales. You can, as previously, specify these rules in `config/initializers/inflections.rb`:
 
-{% highlight ruby linenos=table linespans=line %}
-# Inflector#inflections now takes a locale as a parameter (defaults to :en)
-ActiveSupport::Inflector.inflections(:es) do |inflect|
-  inflect.plural(/$/, 's')
-  inflect.plural(/([^aeéiou])$/i, '\1es')
-  inflect.plural(/([aeiou]s)$/i, '\1')
-  inflect.plural(/z$/i, 'ces')
-  inflect.plural(/á([sn])$/i, 'a\1es')
-  inflect.plural(/é([sn])$/i, 'e\1es')
-  inflect.plural(/í([sn])$/i, 'i\1es')
-  inflect.plural(/ó([sn])$/i, 'o\1es')
-  inflect.plural(/ú([sn])$/i, 'u\1es')
-
-  inflect.singular(/s$/, '')
-  inflect.singular(/es$/, '')
-
-  inflect.irregular('el', 'los')
-end
-{% endhighlight %}
+{% gist davidcelis/d2397231af75c486c309 es.rb %}
 
 After specifying our ruleset for Spanish, we can fire up a Rails console and see it in action:
 
-{% highlight ruby %}
-$ rails c
-Loading development environment (Rails 4.0.0.beta)
-[1] pry(main)> "avión".pluralize(:es)
-=> "aviones"
-[2] pry(main)> "avión".pluralize
-=> "avións"
-[3] pry(main)> "luz".pluralize(:es)
-=> "luces"
-[4] pry(main)> "luz".pluralize
-=> "luzs"
-{% endhighlight %}
+{% gist davidcelis/d2397231af75c486c309 pry_session.rb %}
 
 The Inflector will still default to English and use `:en` as the locale unless specified, as opposed to using the application's `I18n.default_locale`. This is to avoid breaking applications that have been wired internally to use English pluralization rules for mapping between Model, Controller, and table names.
 

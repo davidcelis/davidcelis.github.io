@@ -1,0 +1,21 @@
+---
+layout: default
+title: Music
+permalink: /music/
+---
+
+<section class="content">
+  <ul class="posts">
+    {% for song in site.music reversed %}
+      <li>
+        <a href="{% if song.external %}{{ song.external }}{% else %}{{ song.url }}{% endif %}">
+          <div>
+            <span class="title">{{ song.title }}</span>
+            <span class="artist">{{ song.artist }}</span>
+            <span class="date">{{ song.date | date: "%B %-d, %Y" }}</span>
+          </div>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</div>

@@ -1,9 +1,10 @@
 ---
 layout: post
-title: From 1.5 GB to 50 MB
-subtitle: The Story of my Redis Database
+title: "From 1.5 GB to 50 MB: The Story of my Redis Database"
 date: 2013-03-20 11:42
 categories: [programming, goodbrews, recommendable]
+redirect_from:
+  - /blog/2013/03/20/the-story-of-my-redis-database/
 
 hackernews: http://news.ycombinator.com/item?id=5415219
 ---

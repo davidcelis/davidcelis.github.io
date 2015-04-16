@@ -1,0 +1,41 @@
+@import "variables";
+@import "klinic";
+@import "fira";
+
+body {
+  @extend %body-text;
+  background-color: $light;
+}
+
+h1 {
+  font-size: 45px;
+  margin: 0;
+
+  @media screen and (max-width: 680px) {
+    font-size: 28px
+  }
+}
+
+h2 {
+  margin: 1.5em 0 0.5em 0;
+  font-size: 36px;
+}
+
+h3 {
+  margin: 1.5em 0 0.5em 0;
+  font-size: 24px;
+}
+
+a {
+  @extend %text;
+  font-weight: bold;
+  text-decoration: none;
+
+  &:hover, &:active {
+    text-decoration: underline;
+  }
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @extend %header-text;
+}

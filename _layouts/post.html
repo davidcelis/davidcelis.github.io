@@ -2,26 +2,20 @@
 layout: default
 ---
 
-<article id="main">
-  <header class="special container">
-    <span class="icon">
-      <a href="/"><img class="author" src="/images/me.jpg" /></a>
-    </span>
+<section class="content">
+  <div>
+    <span class="date">{{ page.date | date: "%B %-d, %Y" }}</span>
+  </div>
 
-    <h2>{{ page.title }}</h2>
-
-    {% if page.subtitle %}<p>{{ page.subtitle }}</p>{% endif %}
-  </header>
-
-  <section class="wrapper style3 container special">
+  <article>
     {{ content }}
-  </section>
+  </article>
 
-  {% if page.hackernews != null %}
-    <section class="wrapper style1 container special">
-      <p class="hackernews-info center">
+  {% if page.hackernews %}
+    <div class="center">
+      <p class="hackernews">
         You can discuss this post on <a href="{{ page.hackernews }}">Hacker News</a>.
       </p>
-    </section>
+    </div>
   {% endif %}
-</article>
+</section>

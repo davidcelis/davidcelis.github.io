@@ -1,0 +1,103 @@
+---
+layout: page
+title: Projects
+permalink: /projects/
+---
+
+<section class="content" id="current">
+  <h2>Current</h2>
+
+  <ul class="posts">
+    {% for project in site.projects %}
+      {% if project.current == true %}
+        <li>
+          <a href="{% if project.external %}{{ project.external }}{% else %}{{ project.url }}{% endif %}">
+            <div>
+              <span class="title">{{ project.title }}</span>
+              <span class="description">{{ project.description }}</span>
+            </div>
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="content" id="past">
+  <h2>Past</h2>
+
+  <ul class="posts">
+    {% for project in site.projects %}
+      {% if project.current != true %}
+        <li>
+          <a href="{% if project.external %}{{ project.external }}{% else %}{{ project.url }}{% endif %}">
+            <div>
+              <span class="title">{{ project.title }}</span>
+              <span class="description">{{ project.description }}</span>
+            </div>
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="content" id="contributions">
+  <h2>Contributions</h2>
+
+  <ul class="posts">
+    <li>
+      <a href="https://www.rubyonrails.org/">
+        <div>
+          <span class="title">Ruby On Rails</span>
+          <span class="description">A popular web framework for Ruby.</span>
+        </div>
+      </a>
+    </li>
+
+    <li>
+      <a href="https://www.bundler.org/">
+        <div>
+          <span class="title">Bundler</span>
+          <span class="description">The de facto Ruby Gem manager.</span>
+        </div>
+      </a>
+    </li>
+
+    <li>
+      <a href="https://www.discourse.org/">
+        <div>
+          <span class="title">Discourse</span>
+          <span class="description">An open-source platform for community discourse.</span>
+        </div>
+      </a>
+    </li>
+
+    <li>
+      <a href="https://github.com/crepe/crepe">
+        <div>
+          <span class="title">Crêpe</span>
+          <span class="description">The thin API stack.</span>
+        </div>
+      </a>
+    </li>
+
+    <li>
+      <a href="https://github.com/lotus">
+        <div>
+          <span class="title">Lotus</span>
+          <span class="description">A complete web framework for Ruby.</span>
+        </div>
+      </a>
+    </li>
+
+    <li>
+      <a href="https://www.fish-shell.org/">
+        <div>
+          <span class="title">fish</span>
+          <span class="description">The friendly, interactive shell.</span>
+        </div>
+      </a>
+    </li>
+  </ul>
+</section>

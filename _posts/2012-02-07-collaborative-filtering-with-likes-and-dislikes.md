@@ -3,13 +3,15 @@ layout: post
 title: "Collaborative Filtering With Likes and Dislikes"
 date: 2012-02-07 13:10
 categories: [programming, ruby, rails, recommendable]
+redirect_from:
+  - /blog/2012/02/07/collaborative-filtering-with-likes-and-dislikes/
 ---
 
 Ah, caught your attention, did I? Well, now that I have it, I'd like to sit down and have a chat. We need to talk, friend, and we _need_ to talk about collaborative filtering. It's a technique used in recommendation engines. Please repeat the following:
 
 > This is collaborative filtering. There are many different kinds of collaborative filtering, but mine is memory-based. Memory-based collaborative filtering is my best friend.
 >
-> _Gunnery Seargeant Hartman, Full Metal Jacket_
+> — Gunnery Seargeant Hartman, Full Metal Jacket
 
 Okay, so I may be taking some creative liberty with this one. You shouldn't be best friends with any one form of collaborative filtering. They all deserve love and they all have their uses. I'm sure the gunnery seargeant would agree with me! However, I *would* like to focus on memory-based collaborative filtering today as the algorithms that fall into this category are used often in recommender systems. Additionally, I'm going to go ahead and shift us into the context of a binary rating system: likes and dislikes. Okay? Okay!
 
@@ -61,40 +63,11 @@ In this equation: *thing* is the thing we want to know if *you* will like, *n<su
 
 Well, aren't we impatient? Fine. I suppose you've waited this long. Here's a simple pseudo-implementation of some sweet, sweet Jaccardian collaborative filtering. In Ruby, of course!
 
-{% highlight ruby linenos=table linespans=line %}
-class User
-  def similarity_with(user)
-    # Array#& is the set intersection operator.
-    agreements = (self.likes & user.likes).size
-    agreements += (self.dislikes & user.dislikes).size
-
-    disagreements = (self.likes & user.dislikes).size
-    disagreements += (self.dislikes & user.likes).size
-
-    # Array#| is the set union operator
-    total = (self.likes + self.dislikes) | (user.likes + user.dislikes)
-
-    return (agreements - disagreements) / total.size.to_f
-  end
-
-  def prediction_for(item)
-    hive_mind_sum = 0.0
-    rated_by = item.liked_by.size + item.disliked_by.size
-
-    item.liked_by.each { |u| hive_mind_sum += self.similarity_with(u) }
-    item.disliked_by.each { |u| hive_mind_sum -= self.similarity_with(u) }
-
-    return hive_mind_sum / rated_by.to_f
-  end
-end
-{% endhighlight %}
+{% gist davidcelis/4bdbece8af6fe224de1a jaccardian.rb %}
 
 This is nice and simple and is more or less the way I do things in [recommendable][recommendable] and [goodbre.ws][goodbre.ws]. I did, however, tweak the algorithm in one major way. For example, in that last stage of calculating the similarity values, I actually divide by `self.likes.size + self.dislikes.size`. With this change, the similarity value becomes dependent on the number of items that `self` has rated, but not the number of items that `user` has rated. As such, this makes their similarity values not be reflective:
 
-{% highlight ruby %}
-self.similarity_with(user) == user.similarity_with(self)
-#=> false unless self.ratings.size == user.ratings.size
-{% endhighlight %}
+{% gist davidcelis/4bdbece8af6fe224de1a not_reflective.rb %}
 
 My reasoning behind this is that newer users who have not had a chance to submit likes and dislikes for many objects should not be punished for simply being new. Recommendations for new users can really suck! Say I've submitted ratings for five items, you've submitted ratings for fifty, and four of these items are the same. If we share the same ratings for three of those items, I want my similarity value for you to be high. I'm new here! It will potentially help me get better recommendations faster. You, on the other hand... You've seen things, man. You don't need handouts from the system. Your similarity value with me should be much lower.
 
@@ -108,3 +81,7 @@ Clearly, the Jaccardian similarity coefficient is a very intuitive way to compar
 [euclidean]: http://en.wikipedia.org/wiki/Euclidean_distance
 [cosine]: http://en.wikipedia.org/wiki/Cosine_similarity
 [knn]: http://en.wikipedia.org/wiki/K-nearest_neighbor_algorithm
+
+<script
+  src="//cdn.mathjax.org/mathjax/latest/MathJax.js" type="text/javascript">
+</script>

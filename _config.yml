@@ -1,23 +1,31 @@
 # Site settings
 title: davidcel.is
 email: me@davidcel.is
-description: Wherein I write about programming and music.
-url: http://davidcel.is
-permalink: /blog/:year/:month/:day/:title
+description: "Ellipsis & Code"
 
-twitter_username: davidcelis
-github_username: davidcelis
+url: http://davidcel.is
+permalink: /posts/:title/
+
+collections:
+  music:
+    permalink: /music/:title/
+    output: true
+  projects:
+    permalink: /projects/:title/
+    output: true
 
 # Build settings
 markdown: kramdown
-highlighter: pygments
-
-sass:
-  sass_dir: css
+kramdown:
+  input: GFM
 
 gems:
-  - jekyll-mentions
-  - jemoji
+  - jekyll-redirect-from
 
-include: [".well-known"]
-exclude: ["vendor"]
+include:
+  - .well-known
+exclude:
+  - bin
+  - Gemfile
+  - Gemfile.lock
+  - vendor

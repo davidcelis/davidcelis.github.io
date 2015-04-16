@@ -3,6 +3,8 @@ layout: post
 title: "Why I Hate Five-Star Ratings"
 date: 2012-02-01 11:50
 categories: [programming, recommendable]
+redirect_from:
+  - /blog/2012/02/01/why-i-hate-five-star-ratings/
 ---
 
 A question I get often when discussing [goodbre.ws][1] and, more recently, [recommendable][0], is why I chose to implement a system based on Likes and Dislikes rather than the more standard five-star rating scale. Usually, I'm short and succinct: I think that star rating systems suck. Sometimes, I do go into a bit more detail: I think that star rating systems really suck. However, I'm starting to think that people may be asking this question and expecting some sort of "actual answer", so today I would like to go into just why I think that the five-star rating scale is terrible, and why I decided to use the binary system of likes and dislikes.
@@ -15,11 +17,11 @@ The star rating scale is arguably the most classic of all, so it's not surprisin
 
 One of my big gripes about the five-star scale is ambiguity behind the ratings that you are allowed to give. What exactly distinguishes between three stars and four stars? What is enough to push your rating up to that next star? What is enough to pull it down? Because of a lack of clarity, star ratings can end up being very subjective. It is easy to end up with two people who give an item the same three-star rating but actually feel differently about it. Some websites attempt to handle this reasonably. Netflix, for instance, used to present some explanatory text for each star when hovering over them during a rating:
 
-    ★ (Hated it)
-    ★★ (Didn't like it)
-    ★★★ (Liked it)
-    ★★★★ (Really liked it)
-    ★★★★★ (Loved it)
+★☆☆☆☆ (Hated it)
+★★☆☆☆ (Didn't like it)
+★★★☆☆ (Liked it)
+★★★★☆ (Really liked it)
+★★★★★ (Loved it)
 
 At the time of writing this post, Netflix no longer displays this text when submitting a rating. Instead, posting a rating to Netflix now closely resembles the act of doing so on Amazon: you are simply presented with five clickable stars and left alone with your fears and preconceptions. This is how it often is when submitting a star rating.
 
@@ -35,8 +37,7 @@ Despite this, recommendation systems will accept these ratings as statistically 
 
 Despite being a scale with five possible ratings, people tend to vote in a binary fashion anyway. Back in 2009, YouTube [published some interesting data][3] concerning the ratings that videos had been receiving. As it turns out, a huge majority of videos would receive mostly five-star ratings. I think that YouTube's takeaway from this data was spot on:
 
-> Seems like when it comes to ratings it's pretty much all or nothing. Great
-> videos prompt action; anything less prompts indifference.
+> Seems like when it comes to ratings it's pretty much all or nothing. Great videos prompt action; anything less prompts indifference.
 
 The second highest rating was, of course, one star. This is a great example of binary voting in the works. A lot of people give mostly five-star ratings for things they like. If they don't like that thing, they either give it one star or simply bounce and skip rating it entirely. I've also spoken to friends and acquaintances who admit to giving almost exclusively four-star ratings to things they like, and three-star ratings to things that are "just ok".
 
