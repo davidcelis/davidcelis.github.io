@@ -9,13 +9,6 @@
   font-style: normal;
 }
 
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-  @font-face {
-    font-family: Social;
-    src: url(/fonts/Social.svg) format(svg);
-  }
-}
-
 $twitter: #55acee;
 $github: #333333;
 $soundcloud: #ff8800;
@@ -76,35 +69,35 @@ ul.social-icons {
       &.twitter {
         background-color: $twitter;
 
-        &:before { content: 'a'; }
+        &:before { content: '\e800'; }
         &:hover  { background-color: lighten($twitter, 10%); }
       }
 
       &.github {
         background-color: $github;
 
-        &:before { content: 'Q'; }
+        &:before { content: '\e801'; }
         &:hover  { background-color: lighten($github, 10%); }
       }
 
       &.soundcloud {
         background-color: $soundcloud;
 
-        &:before { content: 'n'; }
+        &:before { content: '\e803'; }
         &:hover  { background-color: lighten($soundcloud, 10%); }
       }
 
       &.instagram {
         background-color: $instagram;
 
-        &:before { content: 'x'; }
+        &:before { content: '\e804'; }
         &:hover  { background-color: lighten($instagram, 10%); }
       }
 
       &.email {
         background-color: $email;
 
-        &:before { content: '<'; }
+        &:before { content: '\e802'; }
         &:hover  { background-color: lighten($email, 10%); }
       }
     }
