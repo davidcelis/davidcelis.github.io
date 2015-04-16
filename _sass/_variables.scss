@@ -14,11 +14,11 @@ $dark: #1c1d21;
   font-weight: 300;
 
   @media screen and (max-width: 680px) {
-    font-size: 18px
+    font-size: 18px;
   }
 }
 
 %header-text {
   @extend %text;
-  font-family: 'Fira Sans'
+  font-family: 'Fira Sans';
 }
