@@ -1,11 +1,32 @@
 <footer>
   <ul class="social-icons">
+    {% if page.date %}
+      <li>
+        <a id="twitter-share-button" class="twitter share" href="https://twitter.com/intent/tweet?text={{ page.title | url_param_escape }}&url={{ page.url | prepend: site.baseurl | prepend: site.url | url_param_escape }}&via=davidcelis"></a>
+      </li>
+    {% endif %}
     <li><a target="_blank" rel="nofollow" class="twitter" href="https://twitter.com/davidcelis"></a></li>
     <li><a target="_blank" rel="nofollow" class="github" href="https://github.com/davidcelis"></a></li>
     <li><a target="_blank" rel="nofollow" class="soundcloud" href="https://soundcloud.com/davidcelis"></a></li>
     <li><a target="_blank" rel="nofollow" class="instagram" href="https://instagram.com/davidcelis/"></a></li>
     <li><a class="email" href="mailto:me@davidcel.is"></a></li>
   </ul>
+
+  {% if page.date %}
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+    <script>
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", encodeURI("http://cdn.api.twitter.com/1/urls/count.json?url={{ page.url | prepend: site.baseurl | prepend: site.url | url_param_escape }}"))
+      xhr.onload = function() {
+        if (xhr.status == 200) {
+          var count = JSON.parse(xhr.responseText).count;
+          link = document.getElementById("twitter-share-button");
+          link.text = " " + count;
+        }
+      }
+      xhr.send();
+    </script>
+  {% endif %}
 
   <p>\ No newline at end of file</p>
 </footer>

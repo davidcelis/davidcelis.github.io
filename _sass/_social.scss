@@ -21,6 +21,8 @@ ul.social-icons {
   padding: 0;
   list-style: none;
 
+  &.share { margin: 0; }
+
   li {
     display: inline-block;
     zoom: 1;
@@ -55,7 +57,8 @@ ul.social-icons {
       display: block;
       position: relative;
       z-index: 1;
-      width: 30px;
+      min-width: 30px;
+      width: auto;
       height: 30px;
       line-height: 30px;
       font-size: 15px;
@@ -71,6 +74,25 @@ ul.social-icons {
 
         &:before { content: '\e800'; }
         &:hover  { background-color: lighten($twitter, 10%); }
+
+        &.share {
+          position: fixed;
+          top: 10px;
+          right: 10px;
+          padding: 0px 5px;
+          margin: 0;
+
+          @media screen and (max-width: 800px) {
+            top: auto;
+            right: auto;
+            bottom: 0;
+            left: 0;
+            -webkit-border-radius: 0;
+            -moz-border-radius: 0;
+            border-radius: 0;
+            width: 100%;
+          }
+        }
       }
 
       &.github {
