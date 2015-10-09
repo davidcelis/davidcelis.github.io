@@ -1,0 +1,44 @@
+---
+---
+
+@import "variables";
+
+header {
+  margin-bottom: 0;
+}
+
+a.contact.email { float: left; }
+a.contact.phone { float: right; }
+
+h1 { margin-bottom: 0.5em; }
+
+h2 { margin-top: 1em; }
+
+a.job, a.school {
+  display: inline;
+  margin: 0;
+  float: left;
+}
+
+span.title {
+  float: left;
+  font-size: 14px;
+  color: $medium-dark;
+  line-height: 32px;
+  font-weight: bold;
+  margin-left: 10px;
+
+  @media screen and (max-width: 580px) {
+    float: none;
+    clear: both;
+    margin-left: 0;
+    display: block;
+  }
+}
+
+span.date {
+  float: right;
+  line-height: 32px;
+}
+
+.clear { clear: both; }

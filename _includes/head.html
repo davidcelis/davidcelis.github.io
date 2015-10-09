@@ -7,6 +7,9 @@
   <meta name="description" content="{% if page.excerpt %}{{ page.excerpt | strip_html | strip_newlines | truncate: 160 }}{% else %}{{ site.description }}{% endif %}">
 
   <link rel="stylesheet" href="/css/main.css">
+  {% for stylesheet in page.css %}
+    <link rel="stylesheet" href="/css/{{ stylesheet }}.css">
+  {% endfor %}
 
   <link rel="me" href="https://twitter.com/davidcelis">
 
