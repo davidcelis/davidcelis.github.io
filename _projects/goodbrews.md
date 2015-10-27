@@ -15,7 +15,7 @@ An unexpected spike in traffic and users came when goodbre.ws was featured on [l
 goodbre.ws remained my [White Whale][white whale] for several years until I admitted to myself that I would never truly re-release it. It had become such a passion of mine that I knew I wouldn't accept anything less than perfection, which is of course an impossibility. Thankfully, [Next Glass][next glass] appeared soon after and the premise is way better anyway.
 
 [collaborative filtering]: /posts/collaborative-filtering-with-likes-and-dislikes/
-[huffington post]: http://huffingtonpost.com/2012/10/01/good…
+[huffington post]: http://www.huffingtonpost.com/2012/10/01/goodbrews-beer-recommendations-exploration-website_n_1930567.html
 [jaccardian index]: http://en.wikipedia.org/wiki/Jaccard_index
 [lifehacker]: http://lifehacker.com/5947790/goodbrews-tracks-the-beer-you-like-suggests-brews-youd-love
 [next glass]: http://nextglass.co
