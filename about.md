@@ -10,4 +10,4 @@ I also write [open-source software](/projects/) as much as possible; I believe s
 
 My main hobby is [music](/music/). I've been a classical pianist for a while, but in the past few years I've turned to folk music. On my own, I mostly do covers, but I've also played in several groups. I'm currently a member of [The Jackalope Saints](http://www.jackalopesaints.com), where I play trumpet, keyboard, and even sometimes the glockenspiel.
 
-_P.S: [pair with me](/pair-with-me/)!_
+Looking for a great Rubyist to do some work for you? Check out my [résumé](/resume/).
