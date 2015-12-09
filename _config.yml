@@ -18,6 +18,8 @@ collections:
 markdown: kramdown
 kramdown:
   input: GFM
+sass:
+  style: compressed
 
 gems:
   - jekyll-redirect-from
