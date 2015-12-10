@@ -16,7 +16,7 @@
     <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
     <script>
       var request = new XMLHttpRequest();
-      request.open("GET","http://opensharecount.com/count.json?url={{ page.url | prepend: site.baseurl | prepend: site.url | url_param_escape }}")
+      request.open("GET","//opensharecount.com/count.json?url={{ page.url | prepend: site.baseurl | prepend: site.url | url_param_escape }}")
 
       request.onload = function() {
         if (request.status >= 200 && request.status < 400) {
