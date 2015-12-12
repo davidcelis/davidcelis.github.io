@@ -23,6 +23,7 @@ sass:
 
 gems:
   - jekyll-redirect-from
+  - jekyll-gist
 
 include:
   - .well-known
@@ -30,4 +31,7 @@ exclude:
   - bin
   - Gemfile
   - Gemfile.lock
+  - LICENSE.txt
+  - README.md
+  - s3_website.yml
   - vendor
