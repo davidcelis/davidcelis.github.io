@@ -35,7 +35,7 @@ Because I deployed my installation to `forums.goodbre.ws`, I changed the first l
 
 If you're running on a VPS service that automatically provisions a swap (such as Linode), you can skip this. On Digital Ocean, however, you'll need to do this yourself. 1GB of RAM was enough for my first deployment but, when I tried to run a second, I wasn't able to allocate enough memory to compile assets. Creating a swap, however, has fixed this issue for me. Let's create a 512MB swapfile:
 
-{% gist davidcelis/6f2b367bf12509a6c9c4 swapfile.sh %}
+{% gist davidcelis/6f2b367bf12509a6c9c4 swap.sh %}
 
 Then, you'll need to edit `/etc/fstab` and paste in the following line:
 
