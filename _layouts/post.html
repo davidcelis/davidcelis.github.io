@@ -2,22 +2,20 @@
 layout: default
 ---
 
-<section class="content">
-  <h1>{{ page.title }}</h1>
+<h1>{{ page.title }}</h1>
 
-  <div>
-    <span class="date">{{ page.date | date: "%B %-d, %Y" }}</span>
+<div>
+  <span class="date">{{ page.date | date: "%B %-d, %Y" }}</span>
+</div>
+
+<article>
+  {{ content }}
+</article>
+
+{% if page.hackernews %}
+  <div class="center">
+    <p class="hackernews">
+      You can discuss this post on <a href="{{ page.hackernews }}">Hacker News</a>.
+    </p>
   </div>
-
-  <article>
-    {{ content }}
-  </article>
-
-  {% if page.hackernews %}
-    <div class="center">
-      <p class="hackernews">
-        You can discuss this post on <a href="{{ page.hackernews }}">Hacker News</a>.
-      </p>
-    </div>
-  {% endif %}
-</section>
+{% endif %}

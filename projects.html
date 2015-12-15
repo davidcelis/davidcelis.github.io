@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: page
 title: Projects
 permalink: /projects/
 ---
@@ -7,7 +7,7 @@ permalink: /projects/
 <section class="content" id="current">
   <h2>Current</h2>
 
-  <ul class="posts">
+  <ul class="posts" id="current">
     {% for project in site.projects %}
       {% if project.current == true %}
         <li>

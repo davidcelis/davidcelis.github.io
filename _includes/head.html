@@ -8,11 +8,7 @@
   <title>{% if page.title and page.title != 'David Celis' %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
   <meta name="description" content="{% if page.excerpt %}{{ page.excerpt | strip_html | strip_newlines | truncate: 160 }}{% else %}{{ site.description }}{% endif %}">
 
-  {% assign version = site.time | date: '%s' %}
-  <link rel="stylesheet" href="/css/main.css?version={{ version }}">
-  {% for stylesheet in page.css %}
-    <link rel="stylesheet" href="/css/{{ stylesheet }}.css?version={{ version }}">
-  {% endfor %}
+  <link rel="stylesheet" href="/css/main.css?version={{ site.time | date: '%s' }}">
 
   <link rel="me" href="https://twitter.com/davidcelis">
 
@@ -33,6 +29,8 @@
   <link rel="icon" type="image/png" href="/images/favicon-96x96.png"   sizes="96x96">
   <link rel="icon" type="image/png" href="/images/favicon-32x32.png"   sizes="32x32">
   <link rel="icon" type="image/png" href="/images/favicon-16x16.png"   sizes="16x16">
+
+  <script type="text/javascript" src="//cdn.jsdelivr.net/pjax-standalone/0.6.1/pjax-standalone.min.js" />
 
   {% include analytics.html %}
 </head>
