@@ -2,6 +2,10 @@
 layout: default
 ---
 <section class="content">
+  {% if page.permalink != '/about/' %}
+    <h1>{% if page.title %}{{ page.title }}{% else %}David Celis{% endif %}</h1>
+  {% endif %}
+
   <article class="post-content">
     {{ content }}
   </article>
