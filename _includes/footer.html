@@ -31,7 +31,21 @@
     </script>
   {% endif %}
 
-  <script>pjax.connect("content");</script>
+  <script>
+    function updateCurrentPage() {
+      var links = document.querySelectorAll('.site-nav a');
+
+      Array.prototype.forEach.call(links, function(link, i){
+        if (link.getAttribute("href") === document.location.pathname) {
+          link.className = "current";
+        } else {
+          link.removeAttribute("class");
+        }
+      });
+    };
+
+    updateCurrentPage();
+  </script>
 
   <p>\ No newline at end of file</p>
 </footer>

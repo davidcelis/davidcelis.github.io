@@ -34,6 +34,7 @@ header {
 
     a {
       margin: 0 0.5em;
+      &.current { text-decoration: underline; }
     }
   }
 }
