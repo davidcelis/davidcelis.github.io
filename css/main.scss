@@ -184,6 +184,22 @@ iframe.bandcamp {
   }
 }
 
+span.staff-badge {
+  background-color: #4078c0;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  color: #ffffff;
+  font-family: Helvetica, arial, nimbussansl, liberationsans, freesans, clean, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  font-size: 10px;
+  font-weight: bold;
+  height: auto;
+  padding: 2px 5px;
+  position: relative;
+  top: -2px;
+}
+
 section.resume {
   a.contact.email { float: left; }
   a.contact.phone { float: right; }
