@@ -12,5 +12,5 @@ I finally got to record another music video, this time with the new group. We en
 We think the video is pretty decent anyway.
 
 <div class="center">
-  <iframe width="560" height="315" src="https://www.youtube.com/embed/GwfSiDLjnfY?vq=hd720" frameborder="0" allowfullscreen></iframe>
+  <iframe width="560" height="315" src="//www.youtube.com/embed/GwfSiDLjnfY?vq=hd720" frameborder="0" allowfullscreen></iframe>
 </div>
