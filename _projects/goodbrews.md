@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: page
 title: "goodbre.ws"
 description: "A recommendation site for beer."
 permalink: /projects/goodbrews/
