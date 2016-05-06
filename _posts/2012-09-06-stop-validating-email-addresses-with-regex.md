@@ -13,7 +13,7 @@ Just stop, guys. It's a waste of your time and your effort. Put down your Google
 
 > Some people, when confronted with a problem, think, "I know, I'll use regular expressions." Now they have two problems.
 >
-> — [Jamie Zawinksi](http://regex.info/blog/2006-09-15/247)
+> — [Jamie Zawinski](http://regex.info/blog/2006-09-15/247)
 
 Here's a fairly common code sample from Rails Applications with some sort of authentication system:
 
