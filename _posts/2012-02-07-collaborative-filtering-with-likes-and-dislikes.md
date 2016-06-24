@@ -82,6 +82,4 @@ Clearly, the Jaccardian similarity coefficient is a very intuitive way to compar
 [cosine]: http://en.wikipedia.org/wiki/Cosine_similarity
 [knn]: http://en.wikipedia.org/wiki/K-nearest_neighbor_algorithm
 
-<script
-  src="//cdn.mathjax.org/mathjax/latest/MathJax.js" type="text/javascript">
-</script>
+<script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
