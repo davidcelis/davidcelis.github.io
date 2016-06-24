@@ -1,8 +1,5 @@
-All content is © 2013-2014 by David Celis under a Creative Commons
+All content is © 2016 by David Celis under a Creative Commons
 Attribution 3.0 Unported License.
-
-The website design is © 2014 by HTML5 UP, and is also licensed
-under a Creative Commons Attribution 3.0 Unported License.
 
 For more information, please read the following legal code or see
 <http://creativecommons.org/licenses/by/3.0/>.

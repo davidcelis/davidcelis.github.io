@@ -1,7 +1,6 @@
 # davidcel.is
 
-This is the source code for my personal site at (http://davidcel.is/). It
-runs on [Jekyll](http://jekyllrb.com/).
+This is the source code for my personal site at (http://davidcel.is/). It runs on [Jekyll](http://jekyllrb.com/).
 
 # License
 
