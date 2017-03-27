@@ -28,4 +28,4 @@ So, without further ado, [this is my transcription][sheet music] for Owen Pallet
 [final fantasy]: http://www.dominorecordco.com/uk/news/18-12-09/final-fantasy-name-change-to-owen-pallett/
 [owen pallett video]: http://www.youtube.com/watch?v=x4cZyF2i5yw
 [stars video]: http://www.youtube.com/watch?v=r5Or6-HOveg
-[sheet music]: http://dl.dropbox.com/u/94814/Slingshot/Pictures/Your%20Ex-Lover%20Is%20Dead%20(Final%20Fantasy).pdf
+[sheet music]: https://cdn.davidcel.is/Your-Ex-Lover-Is-Dead-Final-Fantasy-.pdf
