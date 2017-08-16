@@ -12,7 +12,7 @@ css:
   <h1>David Celis</h1>
 
   <a class="email contact" href="mailto:me@davidcel.is">me@davidcel.is</a>
-  <a class="phone contact" href="tel:+18134689737">+1 813 468 9737</a>
+  <a class="phone contact" href="tel:+18134689737">+1 813.468.9737</a>
 
   <hr class="clear"/>
 
@@ -21,14 +21,24 @@ css:
     with an eye towards usability and maintainability. I am passionate about
     beautiful, readable code and believe strongly in community-driven coding
     standards. When I am not writing products that directly benefit other
-    engineers, I'm an avid <a href="/projects/">Open Source Software</a> advocate.
-    I maintain many open source libraries (some of which are listed below) and
-    have contributed to many more, including
+    engineers, I'm an avid Open Source Software advocate. I maintain
+    <a href="#projects">several open source libraries</a> and have contributed
+    to many more, including
     <a href="http://rubyonrails.org/">Ruby on Rails</a>,
     <a href="http://bundler.io/">bundler</a>,
     <a href="http://discourse.org/">Discourse</a>,
     <a href="https://github.com/hanami">Hanami</a>, and
     <a href="http://fishshell.com/">fish</a>.
+  </p>
+
+  <h2>Proficiencies</h2>
+
+  <p class="clear">
+    <strong>Code:</strong> Ruby, Rails, JavaScript, SQL, GraphQL
+  </p>
+
+  <p>
+    <strong>Tools:</strong> PostgreSQL, MySQL, Redis, Docker, git
   </p>
 
   <h2>Experience</h2>
@@ -38,21 +48,29 @@ css:
   <span class="title">Platform Engineer</span>
 
   <p class="clear">
-    As a member of Platform Engineering, I'm responsible for helping build and
-    maintain GitHub's Developer API, third-party integrations, and webhooks.
+    As a member of GitHub's Platform Engineering organization, I'm responsible for
+    building and maintaining GitHub's developer APIs, third-party integrations,
+    webhooks, and developer documentation. I was a member of the team that shipped
+    the pre-release of GitHub's GraphQL API. Since then, I've spent my time on the
+    Identity Access Management (IAM) team shipping GitHub Apps, an alternative to
+    OAuth applications with finer-grained permissions that developers can install
+    directly on repositories. I also onboarded myself onto GitHub's main on-call
+    rotation after only three months on the job. At my last performance review, I
+    was told that my on-call logs are consistently amongst the best at the company.
   </p>
 
   <a class="job" href="https://immun.io/">IMMUNIO</a>
   <span class="date">April 2015 - December 2015</span>
-  <span class="title">Ruby Agent Engineer</span>
+  <span class="title">Software Engineer</span>
 
   <p class="clear">
-    As a Ruby Agent Engineer, I am responsible for the Ruby gem that reports
-    customer data back to IMMUNIO's top-notch security monitoring service while
-    remaining performant and crash-free. I also architected the API that powers
-    IMMUNIO's front-end dashboard and have implemented features to aggregate data
-    on customers' most important security vulnerabilities so they can easily find
-    them and fix them in their code bases.
+    At IMMUNIO, I designed the Ruby API that powered their front-end Angular
+    dashboard. I also helped implement features to aggregate data on customers'
+    most important security vulnerabilities. Prior to this project, suspicious
+    events would be displayed in long, paginated lists. I worked closely with the
+    front-end developer to roll up suspicious events into clear, ongoing attacks
+    so customers could easily find them and fix them in their application's code
+    base.
   </p>
 
   <a class="job" href="http://www.digitalocean.com/">DigitalOcean</a>
@@ -60,12 +78,15 @@ css:
   <span class="title">Software Engineer</span>
 
   <p class="clear">
-    I helped improve response times in some of the least performant Cloud
-    dashboard pages and developer API endpoints. I also worked on an effort to
-    re-implement and re-design DigitalOcean's DNS product. Finally, I was part of
-    a team focused on improving the usability and functionality of various
-    internal tools, including a custom CMS used heavily by their Customer Support
-    team.
+    I helped improve response times by hundreds of milliseconds in some of the
+    least performant Cloud dashboard pages and developer API endpoints. I also
+    worked on an effort to re-implement and re-design DigitalOcean's DNS product.
+    DigitalOcean's backend was previously a series of Perl scripts running in a
+    loop. As part of a larger effort to re- architect their backend as a network
+    of Go microservices, I aided the rewrite of DNS so I could gain experience in
+    Go. Finally, I was part of a team focused on improving the usability and
+    functionality of various internal tools, including a custom CMS used heavily
+    by their Customer Support team.
   </p>
 
   <a class="job" href="http://www.newrelic.com/">New Relic</a>
@@ -73,11 +94,12 @@ css:
   <span class="title">Senior Software Engineer</span>
 
   <p class="clear">
-    I worked on the customer-facing dashboard for their APM product, helping
-    develop features such as Key Transactions and X-Ray sessions. After leading
-    the development of a new feature as project manager, I joined an internal
-    effort to lay down the foundations for New Relic to migrate to a
-    service-oriented architecture.
+    I worked on the customer-facing dashboard for their flagship product, the APM
+    dashboard, which received billions of metrics from millions of applications
+    each day. My team developed popular features such as Key Transactions and X-Ray
+    sessions. After acting as the PM on a minor feature, I joined an internal effort
+    to lay the foundations for New Relic to migrate to a service-oriented
+    architecture, developing several identity services.
   </p>
 
   <a class="job" href="http://www.deckmonitoring.com/">DECK Monitoring</a>
@@ -86,12 +108,13 @@ css:
 
   <p class="clear">
     I worked on a dashboard to display solar energy usage and generation metrics
-    to customers. My major contribution to DECK Monitoring was the automation of
-    reporting solar data to California utility companies on behalf of DECK
-    customers seeking tax benefits.
+    to thousands of residential and business customers who would report 100-200
+    pieces of data each minute. My major contribution to DECK Monitoring was the
+    automation of reporting this data to California utility companies on behalf
+    of customers seeking tax benefits.
   </p>
 
-  <h2>Projects</h2>
+  <h2 id="projects">Projects</h2>
 
   <a class="project" href="https://github.com/davidcelis/goodbre.ws">goodbre.ws</a>
   <span class="date">January 2011 - March 2014</span>
@@ -99,7 +122,7 @@ css:
   <p class="clear">
     goodbre.ws was a project borne out of my last year in the Rollins College
     Computer Science department. As a senior in the honors program, I was expected
-    to produce an exceptional capstone project, present it, and defend it to the
+    to produce, present, and defend an exceptional capstone project for and to the
     faculty. I chose to build my own collaborative filtering system based on the
     <a href="http://en.wikipedia.org/wiki/Jaccard_index">Jaccardian Similarity Coefficient</a>.
     To provide a practical application for this system, I created goodbre.ws, a
@@ -112,10 +135,10 @@ css:
   <span class="date">January 2012 - Today</span>
 
   <p class="clear">
-    Recommendable is a gem that I extracted from goodbre.ws. It is a drop-in
-    recommender system for Ruby applications using Likes and Dislikes. Ratings
-    and recommendations are stored in Redis to utilize fast set math for
-    collaborative filtering.
+    Recommendable is a Ruby library that I extracted from goodbre.ws. It is a
+    drop-in recommender system for Ruby applications using Likes and Dislikes.
+    Ratings and recommendations are stored in Redis to utilize fast set mathematics
+    for collaborative filtering.
   </p>
 
   <a class="project" href="https://github.com/crepe">Crepe</a>
@@ -143,20 +166,10 @@ css:
   <span class="date">July 2014 - Today</span>
 
   <p class="clear">
-    Sunscreen is a Mac OS X app that I wrote for fun. It's a lightweight menu bar
-    app that changes your desktop wallpaper based on local sunrise and sunset times.
+    Sunscreen is a macOS app that I wrote for fun. It's a lightweight menu bar app
+    that changes your desktop wallpaper based on local sunrise and sunset times.
     Sunscreen was my first (of hopefully many) forays into Swift and developing
     in Apple's Xcode development environment.
-  </p>
-
-  <h2>Proficiencies</h2>
-
-  <p class="clear">
-    <strong>Code:</strong> Ruby/Rails, Swift, JavaScript, SQL, GraphQL
-  </p>
-
-  <p>
-    <strong>Tools:</strong> PostgreSQL, MySQL, Redis, Docker, git, Xcode
   </p>
 
   <h2>Education</h2>
@@ -166,8 +179,8 @@ css:
   <span class="title">Computer Science, B.A.H.</span>
 
   <p class="clear">
-    I graduated <em>summa cum laude</em> with a B.A.H in Computer Science. Having
-    achieved a 3.99 GPA (4.0 Major GPA), I was in the top 5 of my class and was
+    I graduated <em>summa cum laude</em> with a B.A.H in Computer Science. I
+    graduated in the top 5 of my class with a 3.99 GPA (4.0 Major GPA) and was
     on the President's List for all terms.
   </p>
 </section>
