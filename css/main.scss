@@ -193,12 +193,18 @@ span.staff-badge {
   font-weight: bold;
   height: auto;
   padding: 3px 4px;
+  margin-left: 5px;
   position: relative;
   top: -2px;
   border-radius: 2px;
   display: inline-block;
   box-sizing: border-box;
   box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+
+  &.resume {
+    top: 0;
+    float: left;
+  }
 }
 
 section.resume {
