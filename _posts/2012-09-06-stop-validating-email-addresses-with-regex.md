@@ -9,7 +9,7 @@ redirect_from:
 hackernews: http://news.ycombinator.com/item?id=5763327
 ---
 
-Just stop, guys. It's a waste of your time and your effort. Put down your Google search for an [email regular expression](http://www.google.com/search?q=email+regex), take a step back, and breathe. There's a famous quote that goes:
+Just stop, y'all. It's a waste of your time and your effort. Put down your Google search for an [email regular expression](http://www.google.com/search?q=email+regex), take a step back, and breathe. There's a famous quote that goes:
 
 > Some people, when confronted with a problem, think, "I know, I'll use regular expressions." Now they have two problems.
 >
