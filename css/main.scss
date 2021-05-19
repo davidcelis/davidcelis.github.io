@@ -211,9 +211,14 @@ section.resume {
   a.contact.email { float: left; }
   a.contact.phone { float: right; }
 
-  h1 { margin-bottom: 0.5em; }
+  h1 { margin-bottom: 0; }
 
   h2 { margin-top: 1em; }
+
+  h3, h4, h5, h6 {
+    margin-top: 0;
+    text-align: center;
+  }
 
   a.job, a.school, a.project {
     display: inline;
